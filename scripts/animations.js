@@ -374,6 +374,63 @@ heroToNavTl
     0
   );
 
+// -- HERO SCROLL INDICATOR -- //
+//Two overlapping chevrons at the bottom of the hero that breathe up and
+//down on an infinite loop, then fade out (pure opacity, nothing else) as
+//the page scrolls the first 35vh — a "scroll down" hint that gets out of
+//the way once the user's actually doing it.
+//
+//Two independent values drive the breathing loop: the GROUP's own
+//shared y (.hero-scroll-indicator — both chevrons move together, since
+//the bottom one never gets an offset of its own) and the TOP chevron's
+//own extra y on top of that, which is what actually opens/closes the
+//gap between them (the bottom one is the fixed reference that gap is
+//measured against). Three stages, looping:
+//  1. Rise — a small, deliberately understated drift: the group drifts
+//     up a little while the top chevron rises even further on top of
+//     that, stretching the gap open.
+//  2. Squeeze — the top chevron reverses and snaps back down PAST its
+//     resting position (overlapping the bottom one more than at rest —
+//     -7px instead of -3px) while the group gets pushed down below
+//     where it started, as if the top chevron's own downward snap is
+//     what shoves the whole pair down. sine.inOut (not an ease-in-only
+//     curve) is deliberate here — easing INTO this motion but not back
+//     OUT of it read as an abrupt stop right as it hit bottom, like it
+//     had slammed into a floor instead of actually settling there.
+//  3. Return — both ease back to their resting values (0), closing the
+//     loop exactly where it began.
+const heroScrollIndicator = document.querySelector(".hero-scroll-indicator");
+const heroScrollArrowTop = document.querySelector(".hero-scroll-arrow--top");
+
+if (heroScrollIndicator && heroScrollArrowTop) {
+  const heroScrollBreatheTl = gsap.timeline({ repeat: -1 })
+    .to(heroScrollIndicator, { y: -4, duration: 0.9, ease: "sine.inOut" }, 0)
+    .to(heroScrollArrowTop, { y: -5, duration: 0.9, ease: "sine.inOut" }, 0) // gap: -3 -> +2px (stretched open)
+    .to(heroScrollIndicator, { y: 6, duration: 0.5, ease: "sine.inOut" }, 0.9)
+    .to(heroScrollArrowTop, { y: 4, duration: 0.5, ease: "sine.inOut" }, 0.9) // gap: -3 -> -7px (squeezed)
+    .to(heroScrollIndicator, { y: 0, duration: 0.9, ease: "sine.inOut" }, 1.4)
+    .to(heroScrollArrowTop, { y: 0, duration: 0.9, ease: "sine.inOut" }, 1.4);
+
+  // Plain opacity, not autoAlpha — nothing else about it should change
+  // as it fades. scrub (not a discrete toggle) so the fade completes
+  // exactly BY the time 35vh has been scrolled, not at some arbitrary
+  // point within it. The breathing loop pauses once fully faded (and
+  // resumes scrolling back up) purely so it isn't animating forever off
+  // in the background doing nothing visible.
+  gsap.to(heroScrollIndicator, {
+    opacity: 0,
+    ease: "none",
+    scrollTrigger: {
+      trigger: ".hero",
+      start: "top top",
+      end: () => "+=" + window.innerHeight * 0.35,
+      scrub: true,
+      onLeave: () => heroScrollBreatheTl.pause(),
+      onEnterBack: () => heroScrollBreatheTl.play(),
+    },
+  });
+}
+
 // -- NAV BUTTON HOVER SWAP -- //
 //Each .nav-button-label starts holding just its plain text. This finds
 //that text once, then rebuilds the label as: a track (holding the

@@ -371,11 +371,42 @@ body {
 }
 
 .hero {
+  position: relative; /* anchors .hero-scroll-indicator */
   height: 100vh;
   width: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+/* "Scroll down" hint, bottom-center of the hero — two overlapping
+   chevrons that breathe up and down on a loop, then fade out (opacity
+   only) as the page scrolls the first 35vh. Animated entirely by
+   animations.js (see HERO SCROLL INDICATOR there); this file only lays
+   out the resting position/shape. */
+.hero-scroll-indicator {
+  position: absolute;
+  bottom: 3rem; /* not specified — reasonable breathing room off the
+                    viewport's own bottom edge */
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  pointer-events: none; /* purely decorative, same as .video-arrow */
+}
+
+.hero-scroll-arrow {
+  display: block;
+  width: 28px;
+  height: auto;
+  color: #111111;
+}
+
+.hero-scroll-arrow--top {
+  margin-bottom: -3px; /* resting gap between the two chevrons — they
+                            overlap slightly by default. animations.js
+                            flexes this wider/narrower on its breathing
+                            loop, always relative to this CSS baseline. */
 }
  
 .hero-logo {
