@@ -303,7 +303,7 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center; /* centers each item as a group */
-    gap: 2rem; /* 32px */
+    gap: 0rem; /* 32px */
 }
 
 .menu-item {
@@ -316,7 +316,18 @@ body {
     font-family: "Katarine", Arial, Helvetica, sans-serif;
     font-weight: 600; /* Semibold */
     font-size: 6rem; /* 96px */
-    line-height: 6rem; /* 96px */
+    line-height: 7.5rem; /* 120px — was a tight 6rem (exactly 1:1 with
+                             font-size, matching every other .nav-button-
+                             label consumer's own convention). At this
+                             size, this Semibold custom typeface's
+                             descenders/ascenders (y, j, g...) can extend
+                             past a strict 1em box, and .nav-button-
+                             label's own height:1em mask (main.css) was
+                             clipping the overflow. The extra headroom
+                             here needs .menu-item .nav-button-label
+                             below to widen its own mask to match, since
+                             that 1em default no longer lines up with
+                             this taller line-height. */
     letter-spacing: -0.02em; /* -2% */
     color: #FFFFFF;
     text-decoration: none;
@@ -325,9 +336,17 @@ body {
                                         HOVER DIM in animations.js */
 }
 
+.menu-item .nav-button-label {
+    height: 7.5rem; /* matches .menu-item a's own taller line-height
+                        above, instead of the generic height:1em (96px)
+                        every other .nav-button-label consumer uses —
+                        here that'd be shorter than an actual line, which
+                        would just move the clipping instead of fixing it */
+}
+
 .menu-social {
     display: flex;
-    gap: 1rem; /* not specified — reusing the same gap as .navbar-actions */
+    gap: 2rem; /* not specified — reusing the same gap as .navbar-actions */
 }
 
 .menu-social-link {
@@ -452,7 +471,14 @@ body {
                           .intro-arrows */
   z-index: 1;
   width: 65vw;
-  overflow: hidden;
+  /* No overflow:hidden — it isn't actually needed (the width alone
+     already constrains wrapping; the per-character reveal is entirely
+     handled by .intro-text-char-mask's own clip-path below) and a
+     centered line whose rendered width lands right at this box's own
+     65vw edge had nothing but this hard, zero-buffer boundary clipping
+     its rightmost character (í, in "kreativních"/"odvětví" — see the
+     note on .intro-text-char-mask below for the other half of that
+     same fix). */
 }
 
 .intro-text-heading {
@@ -460,10 +486,22 @@ body {
   font-family: "Katarine", Arial, Helvetica, sans-serif;
   font-weight: 600; /* Semibold */
   font-size: 6rem; /* 96px */
-  line-height: 1.3; /* bumped from 1.1 — needs enough headroom that the
-                        per-character masks below (sized to this) don't
-                        clip diacritics/descenders (á, í, g, y…) */
-  letter-spacing: -0.03em; /* -3% */
+  line-height: 8.75rem; /* 140px — was 1.3 (124.8px). Tuned for a ~48px
+                             gap between wrapped lines (measured against
+                             this specific text's own line-break points:
+                             "rozvoj"'s j-descender to "kulturních"'s
+                             k-ascender) — see .intro-text-char-mask below
+                             for why extra line-height alone was never
+                             going to be enough on its own to also fix
+                             the clipping. */
+  letter-spacing: -0.01em; /* -1% — was -0.03em. Still tight/condensed,
+                                but the accent on í (which measures as
+                                overhanging its own character box by
+                                several px — see canvas measureText in
+                                project history) was colliding with the
+                                next letter's own glyph at the tighter
+                                spacing, which read as the accent getting
+                                cut off. */
   text-align: center;
   color: #111111; /* not specified — placeholder, matches other body text */
 }
@@ -501,7 +539,13 @@ body {
    sides — like the accent on í, worse with the negative letter-spacing
    above — from getting cut off: the large negative left/right inset
    values push the clip boundary far past anything a single character
-   could realistically bleed into.
+   could realistically bleed into. Top/bottom now get a small negative
+   inset too (was flush 0/0) — canvas measureText against this exact
+   font/weight/size shows some glyphs' real ink (e.g. y's descender)
+   render a px or two past the font's own declared line-height metrics,
+   which is what a flush 0/0 boundary was clipping during the "going up"
+   reveal — most visible right as a letter settles into place, since
+   that's what draws the eye to it.
    vertical-align:top fixes a separate, easy-to-miss default: an
    inline-block with non-visible overflow gets its *baseline* redefined
    to its own bottom margin edge instead of its text's natural baseline —
@@ -512,7 +556,7 @@ body {
 .intro-text-char-mask {
   display: inline-block;
   vertical-align: top;
-  clip-path: inset(0 -100px 0 -100px);
+  clip-path: inset(-10px -100px -10px -100px);
 }
 
 /* Reusable "label" tag — a small bordered link, meant to be reused
@@ -911,7 +955,7 @@ body {
    directly ("Říjen 2026" — see index.html), so there's no separate
    standalone year number here any more. */
 .calendar-section {
-  padding: 20rem 3rem 11rem 3rem; /* vertical padding not specified —
+  padding: 20rem 3rem 16rem 3rem; /* vertical padding not specified —
                                         reasonable section breathing room;
                                         side padding is the "48px margin" */
 }
@@ -1304,7 +1348,7 @@ body {
                            (align-self/width:100%) since they need to
                            reach the section's own left edge, not center
                            as a block */
-  padding: 3rem 3rem var(--side-margin); /* 48px top — was 20rem (320px);
+  padding: 10rem 3rem var(--side-margin); /* 48px top — was 20rem (320px);
                                         side/bottom already matched the
                                         standard --side-margin (48px) */
 }
@@ -1444,6 +1488,16 @@ body {
   padding: 8rem var(--side-margin) 6rem;
   border-radius: 0px;
   background-color: #111111;
+  margin-bottom: -2px; /* overlaps .gallery-stack's own black background
+                           right below by 2px instead of exactly abutting
+                           it — ScrollSmoother's transform-based scroll
+                           can land on a fractional pixel, and two solid
+                           backgrounds that only just touch can show a
+                           1px sliver of the page's own background
+                           through that rounding error. Since both sides
+                           are the same black, a couple of px of overlap
+                           is invisible either way, but it makes that gap
+                           impossible instead of just unlikely. */
 }
 
 .testimonials-section-grid {
