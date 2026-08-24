@@ -1,0 +1,2060 @@
+* {
+  box-sizing: border-box;
+}
+
+html {
+  /* Explicit anchor for rem sizing (browsers default to this anyway, but
+     stating it means every `rem` value below is legible as "×16px" and
+     it's a single number to change if that base ever needs to move). */
+  font-size: 16px;
+}
+
+:root {
+  /* Site-wide horizontal inset. Apply as padding (not margin) on whatever
+     needs to line up with the edges — margin on adjacent siblings would
+     double up between them. */
+  --side-margin: 3rem; /* 48px */
+}
+
+/* Only the weights currently in use are registered — Light and Bold exist
+   in /fonts too but aren't wired in until something actually needs them. */
+@font-face {
+  font-family: "Katarine";
+  src: url("../fonts/Katarine Regular Std.otf") format("opentype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Katarine";
+  src: url("../fonts/Katarine Medium Std.otf") format("opentype");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Katarine";
+  src: url("../fonts/Katarine Semibold Std.otf") format("opentype");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+body {
+  margin: 0;
+  font-family: Arial, Helvetica, sans-serif;
+  line-height: 1.6;
+  background-color: #F3F3F3;
+}
+
+/* Context cursor: a floating, mouse-following label. Hidden by default;
+   animations.js shows it (via a menu-window-style scale/fade-in) and
+   fills its text whenever a [data-cursor="..."] element is hovered — see
+   the CONTEXT CURSOR section there. Reusable: any element can opt in by
+   adding that attribute, not just the cards using it right now. */
+.context-cursor {
+  position: fixed;
+  top: 0;
+  left: 0;
+  display: flex;
+  align-items: flex-start; /* top-aligned with the text, not centered */
+  gap: 0.5rem; /* 8px */
+  padding: 0.4rem 0.75rem; /* 12px */
+  border-radius: 10px;
+  background-color: #EB2837; /* not specified — reusing the existing
+                                 brand red rather than inventing a new
+                                 color; easy to change if this needs to
+                                 differ per context later */
+  color: #FFFFFF; /* single source of truth for both the text and the
+                      icon below (currentColor) */
+  pointer-events: none; /* never intercepts hover/click on whatever's underneath */
+  z-index: 9999;
+  opacity: 0;
+  visibility: hidden;
+}
+
+.context-cursor-text {
+  display: block;
+  font-family: "Katarine", Arial, Helvetica, sans-serif;
+  font-weight: 600; /* not specified — Semibold, matching the label/button
+                        convention used everywhere else on the site */
+  font-size: 1.5rem; /* 24px */
+  text-transform: uppercase; /* enforces the "always all caps" rule here,
+                                 so whatever gets typed into a future
+                                 data-cursor attribute doesn't need to be
+                                 typed in caps itself */
+  white-space: nowrap;
+}
+
+.context-cursor-icon {
+  width: 8px;
+  height: auto;
+  flex-shrink: 0;
+  margin-top: 0.3em; /* nudges it down from the line box's top (which
+                         includes ascender space above the actual visible
+                         letterforms) toward cap-height — an estimate, not
+                         measured against Katarine's real metrics, so
+                         retune this if it's still off */
+}
+
+/* Anything using the context-cursor system is, by definition, something
+   clickable — so show the native pointer cursor across its whole hover
+   area too, not just wherever a real <a>/<button> happens to sit inside
+   it (e.g. the cards' hit area is bigger than the small text link inside
+   them — see .card-button::after). */
+[data-cursor] {
+  cursor: pointer;
+}
+
+/* Navigation */
+.navbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    display: flex;
+    align-items: center;
+    padding: 1.125rem var(--side-margin); /* 18px 48px */
+    background-color: none;
+    z-index: 200;
+    pointer-events: none; /* the bar itself has no visible background, but
+                              without this its empty center (between the
+                              logo and the buttons) would still intercept
+                              clicks meant for whatever sits underneath it
+                              at a lower z-index — the docked hero logo
+                              (z-index:100 in animations.js) docks to
+                              exactly that spot. Re-enabled below on the
+                              actual interactive children. */
+}
+
+.navbar-inner {
+    display: flex;
+    align-items: top;
+    justify-content: space-between;
+    width: 100%;
+}
+
+.navbar-logo,
+.navbar-actions {
+    pointer-events: auto; /* see the note on .navbar above */
+}
+
+.navbar-logo {
+    display: inline-block;
+    transform-origin: center; /* pivots from its own center on hover (see
+                                  animations.js) */
+}
+
+.navbar-logo img {
+    display: block;
+    height: 2.25rem; /* 32px — the FMK_logo.svg's own intrinsic height */
+    width: auto;
+}
+
+.navbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+/* Shared shape for both nav buttons; fill/outline below only change color. */
+.nav-button {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem; /* 8px — only visible on buttons with a second child
+                    (the hamburger icon); harmless on the text-only one */
+    font-family: "Katarine", Arial, Helvetica, sans-serif;
+    font-weight: 500; /* Medium */
+    font-size: 1.25rem; /* 20px */
+    line-height: 1; /* so the 20px/26px padding below reads as the only
+                        vertical spacing, not stacked on top of body's
+                        looser 1.6 line-height */
+    text-transform: uppercase;
+    padding: 1.25rem 1.75rem; /* 20px 26px */
+    border: none;
+    border-radius: 0.375rem; /* 6px */
+    cursor: pointer;
+}
+
+.nav-button--fill {
+    background-color: #EB2837;
+    color: #FFFFFF;
+}
+
+.nav-button--outline {
+    background-color: #F3F3F3;
+    color: #111111;
+    border: 1px solid rgba(17, 17, 17, 0.4); /* #111111 @ 40% */
+}
+
+/* Menu button specifically opts out of --outline's own #F3F3F3 fill —
+   no background at all, just the border/text — and picks up a smooth
+   color transition, since .navbar--light below swaps its color/border
+   to white whenever a black-background section (or the open menu
+   itself) sits behind it. See NAVBAR COLOR SWAP in animations.js. */
+.nav-button--menu {
+    background-color: transparent;
+    transition: color 0.3s ease, border-color 0.3s ease;
+}
+
+.navbar--light .nav-button--menu {
+    color: #FFFFFF;
+    border-color: #FFFFFF;
+}
+
+/* Hamburger icon: three bars in a fixed box, morphed into an X by
+   animations.js on click. currentColor so it always matches the button's
+   text color without a separate value to keep in sync. */
+.hamburger {
+    position: relative;
+    display: inline-block;
+    flex-shrink: 0; /* don't let the flex row squeeze it */
+    width: 18px;
+    height: 14px;
+}
+
+.hamburger-line {
+    position: absolute;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background-color: currentColor;
+    border-radius: 1px;
+}
+
+.hamburger-line:nth-child(1) {
+    top: 0;
+}
+
+.hamburger-line:nth-child(2) {
+    top: 6px;
+}
+
+.hamburger-line:nth-child(3) {
+    top: 12px;
+}
+
+/* Hover text swap: .nav-button-label is a fixed, one-line-tall mask that
+   never itself moves — it just clips whatever's inside it.
+   .nav-button-label-track is the thing that actually animates: it holds
+   both text copies stacked normally (original, then an aria-hidden
+   clone directly below), twice the mask's height. Sliding the track up
+   by 50% of its own height (= exactly one line) moves the original out
+   the top of the mask as the clone slides in from the bottom — both
+   masked by the outer element the whole way, since that one never
+   moves. See the "NAV BUTTON HOVER SWAP" section in animations.js. */
+.nav-button-label {
+    position: relative;
+    display: block;
+    overflow: hidden;
+    height: 1em; /* one line, given line-height:1 on .nav-button above —
+                    without this the mask just grows to fit the track's
+                    full 2-line height and there's nothing left to clip */
+}
+
+.nav-button-label-track {
+    display: block;
+}
+
+.nav-button-label-track span {
+    display: block;
+}
+
+/* Menu overlay: ONE full-viewport red panel — not a small window docked
+   under the button anymore (.menu-window is gone, folded into this),
+   and no backdrop blur. Slides up from below the viewport on open
+   (yPercent 100 -> 0, see MENU OVERLAY in animations.js) rather than
+   scaling up from a corner. autoAlpha (opacity+visibility) is layered on
+   top of that slide so it's not interactive/focusable while hidden, even
+   though the slide alone already moves it fully off-screen.
+
+   z-index sits ABOVE the docked hero logo (100, set in animations.js) —
+   deliberately, unlike the old blurred backdrop, which stayed below the
+   logo so it would read as "part of the navigation". That reasoning
+   doesn't carry over here: the logo's shapes are the exact same red as
+   this panel (#EB2837), so sitting on top of it would just make the
+   logo invisible. Simplest fix is to let the panel cover it outright.
+   Still below .navbar (200), which stays visible throughout — its own
+   color swaps to white via .navbar--light (see NAVBAR COLOR SWAP and
+   MENU OVERLAY in animations.js), since white is what actually reads
+   against this same red. */
+.menu-overlay {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6rem; /* 96px, list to social icons */
+    background-color: #EB2837;
+    z-index: 150;
+    opacity: 0;
+    visibility: hidden;
+}
+
+.menu-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* centers each item as a group */
+    gap: 2rem; /* 32px */
+}
+
+.menu-item {
+    overflow: hidden; /* masks each item for the reveal-on-open animation */
+}
+
+.menu-item a {
+    display: block;
+    text-align: center;
+    font-family: "Katarine", Arial, Helvetica, sans-serif;
+    font-weight: 600; /* Semibold */
+    font-size: 6rem; /* 96px */
+    line-height: 6rem; /* 96px */
+    letter-spacing: -0.02em; /* -2% */
+    color: #FFFFFF;
+    text-decoration: none;
+    transition: opacity 0.3s ease; /* the "other items dim while one is
+                                        hovered" effect — see MENU ITEM
+                                        HOVER DIM in animations.js */
+}
+
+.menu-social {
+    display: flex;
+    gap: 1rem; /* not specified — reusing the same gap as .navbar-actions */
+}
+
+.menu-social-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 58px; /* was 50px — a bit more breathing room around the icon,
+                     now that there's a border again to sit inside of */
+    height: 58px;
+    flex-shrink: 0;
+    border: 1px solid #FFFFFF; /* back again — was removed, then 2px before that */
+    border-radius: 0.375rem; /* 6px — same radius as .nav-button (the menu
+                                 button itself); was 50%/circular. */
+    background-color: transparent;
+    color: #FFFFFF; /* resting icon color, via currentColor below */
+    text-decoration: none;
+}
+
+.menu-social-link svg {
+    width: 26px;
+    height: auto;
+}
+
+.hero {
+  height: 100vh;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+ 
+.hero-logo {
+  height: auto;
+  width: 60vw;
+}
+
+/* Only clickable/hoverable-looking once actually docked into the nav —
+   toggled in animations.js alongside the heroLogoDocked flag. Before
+   that (still hero-sized, or mid-transition) it shouldn't show a pointer
+   cursor at all. */
+.hero-logo--docked {
+  cursor: pointer;
+}
+ 
+@media (max-width: 768px) {
+  .hero-logo {
+    height: auto;
+    width: 80vw;
+  }
+}
+ 
+.hero-logo svg {
+  height: 100%;
+  width: auto;
+  display: block;
+  overflow: visible;
+  transform-origin: center; /* pivots from its own center on hover (see
+                                animations.js) */
+}
+ 
+/* Each shape sits in its own clip boundary so it can move
+   inside it without spilling outside its mask */
+.shape-mask {
+  overflow: visible;
+}
+
+/* Reveal-on-enter: the mask (.intro-text-mask) is sized by its own
+   content (the heading) since it holds only ONE copy of the text,
+   positioned via transform — unlike .nav-button-label, which needed an
+   explicit height override because it held two stacked copies in normal
+   flow. Width is on the mask (not the heading) since that's what needs
+   to constrain wrapping to 65vw; the heading just fills it. Animated by
+   animations.js — see "INTRO TEXT REVEAL" there. */
+.intro-text {
+  position: relative; /* anchors .intro-arrows to this section's own box */
+  height: 80vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Parallax arrow field behind the heading — built entirely by
+   animations.js (see INTRO ARROWS PARALLAX there for the layout data and
+   how the scroll speed per size is applied). Sits behind the text: DOM
+   order alone would already put .intro-text-mask on top since it comes
+   after this in the markup, but z-index is set explicitly on both so
+   that stacking doesn't depend on markup order staying the same.
+   overflow is deliberately NOT hidden: the parallax means each arrow
+   drifts away from its static spot at its own rate, and a hard clip at
+   .intro-text's own bottom edge would cut slower/faster arrows off
+   mid-drift right as they cross it. Left visible, an arrow that spills
+   past the bottom edge keeps showing through .cards-section below (which
+   has no background of its own there — see main.css there) until it
+   actually scrolls past the top of the viewport, instead of vanishing
+   abruptly at the section boundary. (Nothing spills out the TOP into the
+   hero above pre-scroll — that's handled by clamping the parallax speed
+   itself in animations.js, not by clipping here.) */
+.intro-arrows {
+  position: absolute;
+  inset: 0;
+  overflow: visible;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.intro-arrow {
+  position: absolute;
+  top: 0;
+  left: 0; /* actual placement comes from a per-element left/top % set by
+              animations.js — these are just a 0,0 anchor for that */
+  height: auto;
+  color: #EB2837; /* fill: currentColor, same as .video-arrow-icon */
+}
+
+.intro-arrow--lg { width: 3rem; }     /* 48px — fastest tier, see JS */
+.intro-arrow--md { width: 1.875rem; } /* 30px */
+.intro-arrow--sm { width: 0.875rem; } /* 14px — slowest tier */
+
+.intro-text-mask {
+  position: relative; /* anchors the decorative text overlay below, and
+                          (with z-index) keeps this stacked above
+                          .intro-arrows */
+  z-index: 1;
+  width: 65vw;
+  overflow: hidden;
+}
+
+.intro-text-heading {
+  margin: 0;
+  font-family: "Katarine", Arial, Helvetica, sans-serif;
+  font-weight: 600; /* Semibold */
+  font-size: 6rem; /* 96px */
+  line-height: 1.3; /* bumped from 1.1 — needs enough headroom that the
+                        per-character masks below (sized to this) don't
+                        clip diacritics/descenders (á, í, g, y…) */
+  letter-spacing: -0.03em; /* -3% */
+  text-align: center;
+  color: #111111; /* not specified — placeholder, matches other body text */
+}
+
+/* The real heading — a normal, single text node, left completely alone.
+   color:transparent hides it from SIGHT only (unlike opacity/visibility,
+   it stays selectable and copyable, and screen readers still read it
+   normally). The animated decorative copy (below) renders visibly on
+   top of it, in the exact same spot. */
+.intro-text-heading--real {
+  color: transparent;
+}
+
+/* Visual-only duplicate, built and animated by animations.js — this is
+   the one that actually gets split into letters. aria-hidden (screen
+   readers only ever see the real heading above); pointer-events:none +
+   user-select:none so clicking or dragging over it doesn't get in the
+   way of selecting the real text sitting underneath it. */
+.intro-text-heading--decorative {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* One per character, built by animations.js — the clipping window each
+   letter slides up out of. display:inline-block so it wraps tightly
+   around its one character instead of stretching full-width.
+   clip-path (not overflow:hidden) so ONLY the top/bottom edges actually
+   clip — CSS overflow can't do that per-axis: setting overflow-x:visible
+   while overflow-y is non-visible doesn't stay "visible", the spec
+   forces it to compute as "auto" instead, which still clips exactly like
+   "hidden" would. clip-path has no such restriction, so this is what
+   actually stops glyph ink that renders slightly past its box on the
+   sides — like the accent on í, worse with the negative letter-spacing
+   above — from getting cut off: the large negative left/right inset
+   values push the clip boundary far past anything a single character
+   could realistically bleed into.
+   vertical-align:top fixes a separate, easy-to-miss default: an
+   inline-block with non-visible overflow gets its *baseline* redefined
+   to its own bottom margin edge instead of its text's natural baseline —
+   without overriding that, adjacent letters (and this decorative layer
+   against the real heading underneath) drift out of alignment with
+   each other. clip-path doesn't trigger that same redefinition, but
+   pinning it explicitly is still the more predictable choice. */
+.intro-text-char-mask {
+  display: inline-block;
+  vertical-align: top;
+  clip-path: inset(0 -100px 0 -100px);
+}
+
+/* Reusable "label" tag — a small bordered link, meant to be reused
+   throughout the page (e.g. as scroll-to-section links from the menu). */
+.label {
+  display: inline-block;
+  padding: 0.375rem; /* 6px */
+  border: 2px solid #EB2837;
+  border-radius: 6px;
+  text-transform: uppercase;
+  font-family: "Katarine", Arial, Helvetica, sans-serif;
+  font-weight: 600; /* Semibold */
+  font-size: 1rem; /* 16px */
+  line-height: 1;
+  color: #EB2837;
+  text-decoration: none;
+}
+
+/* Button variant of the same tag — a smaller sibling of .nav-button:
+   same idea (bordered pill-ish shape, hover fill), much smaller footprint,
+   and deliberately NO GSAP wiring — no hover-scale, no text-track slide.
+   Just a plain CSS background/color transition on :hover, since this is
+   meant to sit inline with body copy or in tighter spaces than a full nav
+   button, where that motion would be too much. Pairs with .label-button-
+   icon (External_link.svg, inlined so currentColor can drive its fill) —
+   same icon-next-to-text shape as .card-button's "Přejit na web", just a
+   different icon and an actual bordered button instead of an underlined
+   text link. */
+.label--button {
+  display: inline-flex;
+  align-items: flex-start; /* icon aligned to the top of the text, not
+                               vertically centered against its full
+                               line-height */
+  gap: 0.375rem; /* 6px */
+  padding: 0.5rem 0.75rem; /* 8px 12px — roomier than the plain tag's 6px
+                               all around, reads more like a button */
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* Fills solid with the button's OWN color (border-color, which always
+   matches text color in every context this is used) and flips the text
+   to whatever reads against that fill — not a hardcoded red, which used
+   to fire even on a button whose own scheme is black-on-white or
+   white-on-black and had nothing to do with red. This is the default/
+   standalone case (red context); .card-content/.card--3/.program-item
+   below each restate it for their own color instead. */
+.label--button:hover {
+  background-color: #EB2837;
+  color: #FFFFFF;
+}
+
+.label-button-icon {
+  width: 0.5rem; /* 8px — a bit smaller than the SVG's native 10px */
+  height: auto;
+  flex-shrink: 0;
+}
+
+/* Reusable big red section headline — the same "type" reused across
+   .programs-headline/.calendar-section-headline/.testimonials-section-
+   headline below, each of which just adds its own positioning (margin,
+   grid-column, align-self/justify-self) on top of this shared look. */
+.section-headline {
+  margin: 0;
+  font-family: "Katarine", Arial, Helvetica, sans-serif;
+  font-weight: 600; /* Semibold */
+  font-size: 8rem; /* 128px */
+  line-height: 8rem; /* 128px */
+  letter-spacing: -0.03em; /* -3%, matching .cards-heading/.card-title */
+  color: #EB2837;
+}
+
+/* -- CARD STACK -- //
+   .cards-stack gets pinned (by animations.js, via GSAP's pin — not CSS
+   position:sticky, see the note there) for the full height of
+   .cards-section, so it visually stays put at the top of the viewport
+   while the section's extra height (beyond one viewport) provides scroll
+   distance for the three cards' sequential reveal + a held pause after.
+   The cards sit in their final overlapping layout from the start — only
+   their vertical position is animated (see animations.js) — so the
+   -64px margins here are a permanent part of the layout, not something
+   JS has to account for.
+
+   .cards-heading and .cards-row are both centered on the exact same
+   point by placing them in the SAME grid cell (grid-area:1/1 on each,
+   .cards-stack itself being the grid) with place-items:center sizing
+   each to its own natural content size instead of stretching it — rather
+   than laid out as flex children of .cards-stack, which would center the
+   WHOLE group (heading + gap + row) as one block and push the heading
+   itself off-center once the row's own height is folded into that
+   centering math. Centering each piece on its own dead-center is what
+   actually keeps the heading pinned in the true vertical center of the
+   viewport once .cards-stack becomes sticky — and, since the cards share
+   that exact same center point, means the cards arrive directly on top
+   of the heading (z-index below the row) rather than stacking below it.
+   (An earlier version did this with position:absolute + top/left:50% +
+   transform:translate(-50%,-50%) on each instead — same result, just a
+   layout hack rather than asking the grid to do it directly.) */
+.cards-section {
+  position: relative;
+  height: 400vh; /* not specified — tall enough for 3 reveals plus a
+                     trailing held pause; the number to tune if the
+                     pacing feels too fast/slow or too short/long */
+}
+
+.cards-stack {
+  display: grid;
+  place-items: center; /* both children below are grid-area:1/1 — this is
+                           what stacks and centers them on the same point
+                           instead of the grid auto-placing them into
+                           separate cells */
+  height: 100vh;
+}
+
+.cards-heading {
+  grid-area: 1 / 1;
+  margin: 0;
+  white-space: nowrap; /* always one line — at 128px this needs roughly
+                           1000px+ to fit, which wrapping (the previous
+                           max-width:90vw) wasn't reliably giving it; the
+                           cards cover this heading anyway once they
+                           arrive (see above), so letting it overflow the
+                           viewport's sides on the narrowest screens
+                           rather than wrap is the better trade */
+  font-family: "Katarine", Arial, Helvetica, sans-serif;
+  font-weight: 600; /* Semibold */
+  font-size: 8rem; /* 128px */
+  line-height: 1;
+  letter-spacing: -0.03em; /* -3%, matching .intro-text-heading */
+  color: #EB2837;
+}
+
+.cards-row {
+  grid-area: 1 / 1;
+  z-index: 1; /* above .cards-heading (z-index:0) — the cards cover the
+                 heading once they arrive, rather than sitting below it */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Width caps at 600px (was 680px — sized down specifically so a rotated
+   card--3 has enough headroom to not cross the viewport edge at common
+   desktop sizes, see below) but shrinks below that once 3 overlapping
+   cards wouldn't fit inside the page's own --side-margin (48px) on each
+   side — so the row never touches the viewport edges, no matter how
+   narrow the window gets, at the cost of the cards overlapping each
+   other MORE than the nominal 128px once they do have to shrink (a
+   deliberate trade — see .card--2/.card--3's margin-left below, which
+   stays a fixed 128px regardless).
+   Derived from: 3 cards of width W, two of them overlapping the previous
+   by 128px, need to fit within 100vw minus both side margins:
+     3W - 2×128px ≤ 100vw - 2×var(--side-margin)
+     W ≤ (100vw - 2×var(--side-margin) + 2×128px) / 3
+   which is exactly the calc() below (128px written as 8rem to match the
+   margin-left value it's paired with).
+   That math alone only accounts for the cards' own UNROTATED boxes —
+   rotation (animations.js, CARD_REST) makes the actual rendered corners
+   reach further than that, worst on card--3 (the largest tilt, 10°): at
+   the old 680px/96px-overlap sizing, its rotated corner measured ~12px
+   past the raw edge of a 1920px screen even once fully settled — not
+   just mid-transition. Rather than pad this formula with an approximate
+   multiplier again (tried before — a flat 15% cut, which shrank cards
+   noticeably even where there was no overflow risk at all, see git
+   history), the fix this time is sizing the whole card down a bit and
+   overlapping the row more, which the math above already accounts for
+   — verified against the same 1920px case afterward instead of guessed.
+
+   container-type:inline-size turns .card into a query container for its
+   own children's cqw units below (see --card-unit) — that's what makes
+   the padding/type sizes inside actually shrink IN STEP with the width
+   above, instead of staying a fixed px/rem regardless of how small the
+   card itself has gotten. --card-unit is "1 design pixel" at the
+   original 680px reference size (i.e. where the numbers in .card-title/
+   .card-headline/etc below are exact), expressed in cqw (1% of the
+   card's OWN current width) so it scales linearly with it — including
+   the new 600px cap above being slightly below that reference, which is
+   why content now renders very slightly under its nominal size even at
+   full/uncompressed card width. Every inner size that should track the
+   card's own size is written as calc(<reference px> * var(--card-unit))
+   rather than a plain rem value. */
+.card {
+  position: relative;
+  width: min(37.5rem, calc((100vw - 2 * var(--side-margin) + 16rem) / 3));
+  aspect-ratio: 680 / 760; /* height follows from width instead of a
+                               separate fixed value, so the 680:760 shape
+                               is what's preserved as width above shrinks */
+  flex-shrink: 0; /* flex would otherwise shrink these to fit if the
+                      viewport is narrower than all three combined */
+  border-radius: 0.375rem; /* 6px — a fixed UI-chrome radius, deliberately
+                               NOT scaled by --card-unit like the content
+                               sizes below are */
+  overflow: hidden; /* keeps card-content's padding box from ever
+                        visually breaking the rounded corners */
+  container-type: inline-size;
+  --card-unit: calc(100cqw / 680);
+}
+
+.card--2,
+.card--3 {
+  margin-left: -128px; /* overlaps the previous card by 128px */
+}
+
+.card--1 {
+  background-color: #EB2837;
+  z-index: 1;
+}
+
+.card--2 {
+  background-color: #111111;
+  z-index: 2;
+}
+
+.card--3 {
+  background-color: #FFFFFF;
+  z-index: 3;
+}
+
+.card-content {
+  height: 100%;
+  padding: calc(40 * var(--card-unit)); /* 40px at the 680px reference size */
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start; /* left-aligned */
+  text-align: left;
+}
+
+.card-title {
+  margin: 0;
+  text-transform: uppercase; /* the biggest text in the card — .card-
+                                 headline below (smaller) stays plain case */
+  font-family: "Katarine", Arial, Helvetica, sans-serif;
+  font-weight: 600; /* Semibold, matching every other heading on the site */
+  font-size: calc(96 * var(--card-unit)); /* 96px at the 680px reference size */
+  line-height: 1; /* was a matching 96px — unitless keeps it exactly
+                      1:1 with font-size above at any scale, no separate
+                      cqw calc needed */
+  letter-spacing: -0.03em; /* -3%, matching .cards-heading/.intro-text-heading */
+  color: #FFFFFF;
+}
+
+.card-headline {
+  margin: calc(48 * var(--card-unit)) 0 0; /* 48px gap above (from the title) at the 680px reference size */
+  font-family: "Katarine", Arial, Helvetica, sans-serif;
+  font-weight: 600; /* Semibold */
+  font-size: calc(40 * var(--card-unit)); /* 40px at the 680px reference size */
+  line-height: 1.2; /* was a matching 48px (48/40) — unitless keeps that
+                        ratio at any scale */
+  letter-spacing: -0.01em; /* -1% */
+  color: #FFFFFF;
+}
+
+/* Bottom row of the card: margin-top:auto pushes IT to the very bottom of
+   .card-content (a flex column) regardless of how much text precedes it,
+   the same job .card-button's own margin-top:auto used to do directly —
+   moved up here since the button is now one of two things sharing this
+   row instead of the sole flex child. width:100% makes sure this row
+   spans the card's full content width despite .card-content's own
+   align-items:flex-start (which would otherwise shrink it to fit just
+   the button/text), which is what gives .card-text's margin-left:auto
+   below any room to actually push it to the right edge. */
+.card-footer {
+  margin-top: auto;
+  width: 100%;
+  display: flex;
+  align-items: flex-end; /* bottom-aligned — the button sits at the
+                             card's bottom-left corner even if the text
+                             next to it wraps to more lines */
+  gap: 1.5rem; /* 24px MINIMUM between the button and .card-text — a flex
+                  gap, not a margin, so it's enforced even when .card-text's
+                  own margin-left:auto has no free space left to push into
+                  (a narrow card/wide text could otherwise butt the two
+                  right up against each other). Deliberately a fixed value,
+                  not scaled by --card-unit like most other sizes in here —
+                  "24px minimum at all times" means this floor shouldn't
+                  shrink away on a compressed card either. */
+}
+
+.card-text {
+  margin: 0 0 0 auto; /* pushes flush right within .card-footer — works
+                          whether or not a button is also present (card 1
+                          has no button, see .card-button below) */
+  width: calc(300 * var(--card-unit)); /* 300px at the 680px reference size */
+  font-family: "Katarine", Arial, Helvetica, sans-serif;
+  font-weight: 400; /* Regular — the smallest text in the card, one weight
+                        lighter than everything else here */
+  font-size: calc(24 * var(--card-unit)); /* 24px at the 680px reference size */
+  line-height: 1.333; /* was a matching 32px (32/24) — unitless keeps
+                          that ratio at any scale */
+  letter-spacing: -0.01em; /* -1% */
+  color: #FBD4D7;
+}
+
+/* Only present on cards 2 and 3. Purely structural now — the visual
+   styling (border, padding, hover fill, icon) comes from .label/.label--
+   button, added alongside this class in the markup; this rule only still
+   owns what's specific to sitting inside a card: ::after, which is what
+   makes the WHOLE card clickable, not just this small button —
+   "stretched link", a single real <a> extended to fill an ancestor via a
+   pseudo-element, rather than a second nested <a> (which HTML disallows)
+   or a fake JS-driven click handler on the card div. .card already has
+   position:relative, so inset:0 here sizes to the full card, not just
+   .card-content. */
+.card-button {
+  position: relative;
+}
+
+.card-button::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+}
+
+/* .label--button defaults to red-on-transparent (see main definition) —
+   fine standalone, but invisible/wrong against a colored card, so every
+   card gets it flipped to white-on-transparent here first; card 3 below
+   flips it again to dark. Size-wise it also gets scaled by --card-unit
+   here, same reasoning as .card-title/.card-headline/.card-text above —
+   without this it'd stay a fixed 16px/8px/12px/6px regardless of how far
+   the card itself has shrunk, out of step with everything around it. */
+.card-content .label--button {
+  color: #FFFFFF;
+  border-color: #FFFFFF;
+  gap: calc(6 * var(--card-unit)); /* 6px at the 680px reference size */
+  padding: calc(8 * var(--card-unit)) calc(12 * var(--card-unit)); /* 8px 12px at the 680px reference size */
+  font-size: calc(16 * var(--card-unit)); /* 16px at the 680px reference size */
+}
+
+/* Hover here fills white (this context's own color, see above) with dark
+   text — not the base definition's red, which doesn't belong to this
+   button's scheme at all. Cards 1 and 2 only; card 3 restates this again
+   below for its own black-on-white scheme. */
+.card-content .label--button:hover {
+  background-color: #FFFFFF;
+  color: #111111;
+}
+
+.card-content .label-button-icon {
+  width: calc(8 * var(--card-unit)); /* 8px at the 680px reference size */
+}
+
+/* Card 2: everything stays the shared white (title/headline/button
+   already are, by default) except the body text, which swaps the
+   default pink (#FBD4D7) for white at 70% opacity instead. */
+.card--2 .card-text {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+/* Card 3: dark text throughout instead of the shared white — title,
+   headline, and button all switch to #111111; body text is the same
+   #111111 at 70% opacity (same pattern as card 2's white-at-70%). The
+   button's border is extended to #111111 too (not left white), since a
+   white border around now-dark text would read as a mismatch rather
+   than a deliberate choice. */
+.card--3 .card-title,
+.card--3 .card-headline,
+.card--3 .label--button {
+  color: #111111;
+}
+
+.card--3 .label--button {
+  border-color: #111111;
+}
+
+/* Card 3's own hover: fills black (its own color) with white text —
+   overrides BOTH the base definition's red fill and .card-content's
+   white-fill/dark-text pair above (same specificity as that one, defined
+   later here so it wins for card 3 specifically). */
+.card--3 .label--button:hover {
+  background-color: #111111;
+  color: #FFFFFF;
+}
+
+/* .label--button:hover (main definition above) sets color:#FFFFFF for
+   the same reason every other hover fill does — white text is what stays
+   readable against the solid red fill. Without this, the color:#111111
+   override just above would win instead (same specificity, defined
+   later), leaving dark text on a bright red hover fill. */
+.card--3 .label--button:hover {
+  color: #FFFFFF;
+}
+
+.card--3 .card-text {
+  color: rgba(17, 17, 17, 0.7);
+}
+
+/* -- CALENDAR SECTION -- //
+   .calendar-section-grid is a 12-column grid holding the headline, intro
+   paragraph, and the calendar-grid itself (which spans columns 2–11 —
+   everything except the first and last column, see .calendar-grid below
+   — and is its OWN nested 12-column grid, so each event card can span
+   exactly half via grid-column:span 6 — cleaner than the earlier flex +
+   calc(50% - gap) approach, and what actually makes "two equal halves of
+   the grid columns" a literal truth rather than a percentage that
+   happens to look like it). Each event's own month now carries its year
+   directly ("Říjen 2026" — see index.html), so there's no separate
+   standalone year number here any more. */
+.calendar-section {
+  padding: 20rem 3rem 11rem 3rem; /* vertical padding not specified —
+                                        reasonable section breathing room;
+                                        side padding is the "48px margin" */
+}
+
+.calendar-section-grid {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 0.75rem; /* 12px */
+}
+
+.calendar-section-headline {
+  grid-column: 1 / 12; /* column 1 through column 11 */
+  grid-row: 1;
+  align-self: start; /* stay compact/top-aligned in its row, not stretched
+                         to fill it (the grid default) */
+}
+
+.calendar-section-intro {
+  grid-column: 1 / 6; /* column 1 through column 5 — same left start as
+                          the headline above, but narrower. Left-aligned
+                          text, but the box itself still reaches all the
+                          way to column 5's right edge instead of
+                          shrinking to the text's own width. */
+  grid-row: 2;
+  margin: -0.25rem 0 0; /* partially cancels .calendar-section-grid's own
+                            12px row-gap, leaving a net 8px gap (was fully
+                            canceled to a true 0px gap) */
+  text-align: left;
+  font-family: "Katarine", Arial, Helvetica, sans-serif;
+  font-weight: 500; /* Medium */
+  font-size: 1.5rem; /* 24px */
+  line-height: 2rem; /* 32px */
+  color: #111111;
+}
+
+.calendar-grid {
+  grid-column: 2 / 12; /* columns 2–11 — leaves column 1 and column 12
+                           empty on either side, shrinking every event
+                           card inside (each still spans half of THIS
+                           grid's own 12 columns, span 6, just a narrower
+                           12 than before) */
+  margin-top: 6rem; /* 96px gap from the headline/intro above — was 32px */
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 0.75rem; /* 12px */
+}
+
+/* Below 1450px .calendar-grid's own 2–11 inset (see above) starts eating
+   too much into the available width on top of .calendar-section's side
+   padding — drop it and let the grid use the full 12 columns instead.
+   Below 1000px there's no longer room for two events side by side at a
+   readable size, so each one spans the full width and they stack into a
+   single column instead. */
+@media (max-width: 1450px) {
+  .calendar-grid {
+    grid-column: 1 / -1;
+  }
+}
+
+.calendar-event {
+  display: flex;
+  align-items: stretch; /* default, stated explicitly since it's exactly
+                            what makes .calendar-event-info "guided by"
+                            .calendar-event-date's height */
+  grid-column: span 6; /* half the 12-column grid */
+}
+
+/* Placed after the base rule above (same specificity — source order is
+   what actually decides the winner here, and a media query block earlier
+   in the file loses to an unconditional rule later on regardless of
+   whether the query currently matches). */
+@media (max-width: 1000px) {
+  .calendar-event {
+    grid-column: 1 / -1;
+  }
+}
+
+.calendar-event-date {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  flex-shrink: 0;
+  padding: 1rem 1.5rem; /* 16px 24px */
+  background-color: #EB2837;
+  border-top-left-radius: 0.625rem; /* 10px */
+  border-bottom-left-radius: 0.625rem; /* 10px */
+}
+
+.calendar-event-day,
+.calendar-event-month {
+  font-family: "Katarine", Arial, Helvetica, sans-serif;
+  font-weight: 500; /* Medium */
+  font-size: 1.25rem; /* 20px */
+  color: #FFFFFF;
+  white-space: nowrap;
+}
+
+.calendar-event-day {
+  margin-bottom: 0.375rem; /* 6px gap to the number below it */
+}
+
+.calendar-event-number {
+  margin-bottom: 0.75rem; /* 12px gap to the month below it */
+  font-family: "Katarine", Arial, Helvetica, sans-serif;
+  font-weight: 600; /* not specified — Semibold, matching the "big
+                        number" treatment used elsewhere on the site
+                        (e.g. the hero-to-nav docked logo's neighbors) */
+  font-size: 2.5rem; /* not specified — sized to stand out as the card's
+                         focal number, distinct from the smaller day/month
+                         labels around it */
+  line-height: 1;
+  color: #FFFFFF;
+  font-variant-numeric: lining-nums; /* tall/lining figures, not the
+                                         font's default oldstyle numerals */
+}
+
+.calendar-event-info {
+  flex: 1;
+  min-width: 0; /* lets long headline/location text wrap instead of
+                    forcing the card wider than its grid-column:span 6 */
+  padding: 2rem; /* 32px */
+  border-top: 1px solid rgba(17, 17, 17, 0.4); /* #111111 @ 40%, no fill,
+                                                   no left border — the
+                                                   red date half already
+                                                   provides a visual edge
+                                                   there */
+  border-right: 1px solid rgba(17, 17, 17, 0.4);
+  border-bottom: 1px solid rgba(17, 17, 17, 0.4);
+  border-top-right-radius: 0.625rem; /* 10px — matched to the left side's
+                                          10px so the whole card isn't
+                                          half-rounded, half-square */
+  border-bottom-right-radius: 0.625rem; /* 10px */
+}
+
+.calendar-event-info-inner {
+  display: flex;
+  height: 100%;
+  gap: 1rem; /* not specified — breathing room between the text and the
+                arrow so they don't collide on narrower cards */
+}
+
+.calendar-event-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.calendar-event-headline {
+  margin: 0 0 0.5rem; /* 8px gap to the location below it */
+  font-family: "Katarine", Arial, Helvetica, sans-serif;
+  font-weight: 600; /* not specified — Semibold */
+  font-size: 2rem; /* 32px */
+  line-height: 2.5rem; /* 40px */
+  color: #111111; /* not specified */
+  font-variant-numeric: lining-nums; /* tall/lining figures, matching the
+                                         calendar date numbers */
+}
+
+.calendar-event-location {
+  margin: 0;
+  font-variant-numeric: lining-nums;
+  font-family: "Katarine", Arial, Helvetica, sans-serif;
+  font-weight: 400; /* not specified — Regular */
+  font-size: 1.125rem; /* 18px */
+  line-height: 1.5rem; /* 24px */
+  color: #111111; /* not specified */
+}
+
+/* Stretches to the info half's full height (the flex default on
+   .calendar-event-info-inner above) — that's the "filling the height
+   space" part. align/justify:flex-end here is what then pins the arrow
+   itself to this wrapper's bottom-right corner. */
+.calendar-event-arrow-wrapper {
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  flex-shrink: 0;
+}
+
+.calendar-event-arrow {
+  width: 10px;
+  height: auto;
+  color: rgba(17, 17, 17, 0.4); /* #111111 @ 40%, via currentColor */
+}
+
+/* -- CONTACTS SECTION -- //
+   Fully rebuilt — the old pinned/scroll-driven accordion (3 collapsing
+   cards, one open at a time) is gone. Now a plain, static 3-across row
+   of photo + text, revealed on scroll like PROGRAMS SECTION REVEAL /
+   CALENDAR EVENT REVEAL rather than pinned — see CONTACTS PHOTOS REVEAL
+   in animations.js. */
+.contacts-section {
+  padding: 8rem var(--side-margin) 6rem;
+}
+
+.contacts-section-grid {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 0.75rem; /* 12px */
+}
+
+/* Same treatment/position as .calendar-section-headline (grid-column
+   1/12, top-aligned) — just no second row for a subheadline underneath. */
+.contacts-section-headline {
+  grid-column: 1 / 12;
+  align-self: start;
+}
+
+.contacts-photos {
+  margin-top: 6rem; /* 96px gap from the headline above, matching
+                        .calendar-grid's own gap from ITS headline */
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  column-gap: 0.75rem; /* 12px, sitewide convention */
+  align-items: start; /* top-aligns each item at its own natural height —
+                          without this, the grid's default stretch would
+                          pad the shorter two out to match whichever
+                          person's text block is tallest */
+}
+
+.contact-person {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start; /* text left-aligned under the image */
+  grid-row: 1; /* all three explicitly share one row — needed because
+                  .contact-person--2 below claims the FULL 12-column
+                  width for its own grid area (to center within it), and
+                  auto-placement would otherwise push it into its own row
+                  rather than overlapping items 1/3's explicit columns */
+  width: 80%; /* shrinks the photo (and, since it's the same box, the
+                  text below it) a bit smaller than the full 3-column
+                  cell — was 100%. .contact-person--2 below has its own
+                  width instead: 80% of ITS OWN (full-row) cell would be
+                  way too wide. */
+}
+
+.contact-person--1 {
+  grid-column: 2 / 5; /* starts on column 2, spans 3 columns */
+  /* No explicit justify-self — the default (stretch, which falls back to
+     start once the item has a definite width via .contact-person's own
+     80% above) already keeps its LEFT edge at column 2's left edge as
+     the box shrinks. */
+}
+
+.contact-person--3 {
+  grid-column: 9 / 12; /* ends flush with the right edge of column 11 */
+  justify-self: end; /* keeps the shrunk box's RIGHT edge pinned to
+                         column 11's right edge — without this, the
+                         default start-alignment would anchor its LEFT
+                         edge instead, pulling it away from column 11 */
+}
+
+/* Sits dead center of the full row rather than on a literal 3-column
+   span like items 1/3 — a 3-column block can't be exactly centered
+   between them using integer grid lines (the 4-column gap left between
+   item 1's end and item 3's start doesn't split evenly into two equal
+   gaps), so this claims the FULL 12-column width as its own grid area
+   and centers within it instead; its width is computed to still land on
+   80% of the exact pixel width item 1/3 get from their own native
+   3-column spans (matching .contact-person's own 80% above) — for N=3
+   columns out of a repeat(12,1fr) row with gap G, an N-column span's
+   width simplifies to (100% - 3*G) / 4. */
+.contact-person--2 {
+  grid-column: 1 / -1;
+  justify-self: center;
+  width: calc((100% - 3 * 0.75rem) / 4 * 0.8);
+}
+
+.contact-photo {
+  width: 100%;
+  aspect-ratio: 4 / 5; /* vertical/portrait — height follows from width */
+  border-radius: 4px;
+  object-fit: cover;
+}
+
+.contact-person-text {
+  margin-top: 2rem; /* 32px gap from the image above */
+}
+
+/* Same "(" ")" bracket treatment as .testimonial-tag — display:inline-
+   flex + gap puts the same 6px on both sides of the text for free (the
+   text becomes its own anonymous flex item between the two pseudo-
+   elements), and neither pseudo-element sets its own color, so both
+   inherit this rule's red automatically. */
+.contact-person-team {
+  display: inline-flex;
+  align-items: center; /* centers the larger 24px brackets against the
+                           text's own shorter 16px line */
+  gap: 0.375rem; /* 6px */
+  margin: 0;
+  font-family: "Katarine", Arial, Helvetica, sans-serif;
+  font-weight: 600; /* Semibold */
+  font-size: 1rem; /* 16px — not specified, a small eyebrow label above
+                       the name rather than the old design's own 64px
+                       colored headline */
+  text-transform: uppercase;
+  color: #EB2837;
+}
+
+.contact-person-team::before,
+.contact-person-team::after {
+  font-family: "Katarine", Arial, Helvetica, sans-serif;
+  font-weight: 500; /* Medium */
+  font-size: 1.5rem; /* 24px */
+  line-height: 1;
+}
+
+.contact-person-team::before {
+  content: "(";
+}
+
+.contact-person-team::after {
+  content: ")";
+}
+
+.contact-person-name {
+  margin: 0.5rem 0 0; /* not specified — small gap to the team label above,
+                          matching the old .contact-name's own gap value */
+  font-family: "Katarine", Arial, Helvetica, sans-serif;
+  font-weight: 600; /* Semibold */
+  font-size: 2rem; /* 32px */
+  line-height: 2.5rem; /* 40px */
+  color: #111111;
+}
+
+.contact-person-role {
+  margin: 0.5rem 0 0;
+  font-family: "Katarine", Arial, Helvetica, sans-serif;
+  font-weight: 400; /* Regular */
+  font-size: 1.25rem; /* 20px */
+  line-height: 1.625rem; /* 26px */
+  color: #111111;
+  opacity: 0.7;
+}
+
+/* .contact-person-detail (phone/email/address/website) reuses
+   .contact-person-role's own look almost exactly (same secondary text
+   treatment) but is a flex row again, icon-and-text — restores the old
+   .contact-detail/.contact-detail-icon pairing that got dropped in the
+   rebuild. opacity:0.7 on the row applies to the icon too (opacity
+   cascades to children), same as the old .contact-detail did. */
+.contact-person-detail {
+  display: flex;
+  align-items: center;
+  gap: 1rem; /* 16px, matching the old .contact-detail */
+  margin: 0.5rem 0 0;
+  font-family: "Katarine", Arial, Helvetica, sans-serif;
+  font-weight: 400; /* Regular */
+  font-size: 1.25rem; /* 20px */
+  line-height: 1.625rem; /* 26px */
+  color: #111111;
+  opacity: 0.7;
+}
+
+/* An adjacent-sibling selector, not :first-of-type — EVERY child of
+   .contact-person-text (team/name/role/detail) is a <p>, so ":first-of-
+   type" would only ever match .contact-person-team (literally the first
+   <p> among the siblings), never a .contact-person-detail. This instead
+   matches specifically the .contact-person-detail that comes right after
+   .contact-person-role — i.e. the first one — since only it can be
+   immediately preceded by the role paragraph. */
+.contact-person-role + .contact-person-detail {
+  margin-top: 1rem; /* 16px — a bit more separation from the role text
+                        right above it than the detail lines get from
+                        each other */
+}
+
+.contact-person-detail-icon {
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  color: #111111; /* via currentColor, matches the text next to it */
+}
+
+/* -- PROGRAMS SECTION -- //
+   Same 12-column grid technique as .calendar-grid — each item spans 4 of
+   the 12 columns, so exactly 3 sit per row. The button inside reuses
+   .card-button/.label/.label--button as-is (see .cards-section) rather
+   than duplicating that component — color is overridden to black below
+   (.label--button's own default is red, which read wrong here); position
+   .program-item .card-button below only needs to redo the positioning
+   cards-section's own .card-footer normally handles (bottom-alignment,
+   staying left-aligned instead of stretching), since .program-text has
+   none of that structure. */
+.programs-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* centers children by default; .programs-headline
+                           and .programs-grid below both opt out of that
+                           (align-self/width:100%) since they need to
+                           reach the section's own left edge, not center
+                           as a block */
+  padding: 3rem 3rem var(--side-margin); /* 48px top — was 20rem (320px);
+                                        side/bottom already matched the
+                                        standard --side-margin (48px) */
+}
+
+.programs-headline {
+  align-self: flex-start;
+  margin-bottom: 8rem; /* 96px gap to .programs-grid below */
+}
+
+.programs-grid {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  column-gap: 0.75rem; /* 12px */
+  row-gap: 4rem; /* 56px */
+}
+
+.program-item {
+  position: relative; /* containing block for .card-button's own stretched
+                          ::after, same as .card */
+  grid-column: span 4; /* 3 per row across the 12-column grid — was
+                           span 6 (2 per row), which the comment above
+                           already claimed but the code didn't match */
+  display: flex;
+  flex-direction: column;
+  border-radius: 0.625rem; /* 10px */
+}
+
+.program-image {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1.71 / 1; /* e.g. 600px wide → 350px tall */
+  object-fit: cover;
+  border-radius: 0.375rem; /* 6px — smaller than .program-item's own 10px,
+                               deliberately: the image is a distinct inset
+                               element inside the white card, not sized to
+                               match its outer corner */
+}
+
+.program-text {
+  margin-top: 1.5rem; /* 24px gap from the image to .program-headline below */
+  flex: 1; /* grows to fill whatever extra height .program-item picked up
+              from CSS Grid's default row-stretch (matching its tallest
+              sibling in the row) — without this, .program-item could be
+              taller than its content needs, but .program-text itself
+              would just sit at its own natural height instead of filling
+              that extra space, leaving .card-button's margin-top:auto
+              below with no room to actually push it down */
+  display: flex;
+  flex-direction: column;
+}
+
+.program-headline {
+  margin: 0;
+  font-family: "Katarine", Arial, Helvetica, sans-serif;
+  font-weight: 600; /* Semibold */
+  font-size: 2rem; /* 32px */
+  line-height: 2.5rem; /* 40px */
+  color: #111111;
+}
+
+.program-description {
+  margin: 0.75rem 0 2rem; /* 12px gap from the headline above; 32px
+                              MINIMUM floor to the button below (was 24px)
+                              — fixed (not auto), so it always applies
+                              even when .program-text has no extra height
+                              to give the button's own auto margin below */
+  font-family: "Katarine", Arial, Helvetica, sans-serif;
+  font-weight: 500; /* Medium */
+  font-size: 1rem; /* 16px */
+  line-height: 1.5rem; /* 24px */
+  color: #111111;
+  opacity: 0.7;
+}
+
+.program-item .card-button {
+  align-self: flex-start; /* stay left-aligned, not stretched full-width
+                              by .program-text's flex column — cards-
+                              section's own .card-footer is a row, not a
+                              column, so it never needed this itself */
+  margin-top: auto; /* on top of .program-description's own fixed 32px
+                        margin-bottom above (flex items' margins don't
+                        collapse, so both apply/stack) — this auto margin
+                        adds whatever EXTRA space .program-text has beyond
+                        that 32px floor, growing the gap to keep the
+                        button bottom-aligned when a taller sibling in the
+                        same grid row stretches .program-item, without
+                        ever shrinking the gap below 32px */
+}
+
+.program-item .label--button {
+  color: #111111; /* .label--button's own default is red — this section
+                       wants it black instead. */
+  border-color: #111111;
+}
+
+/* Hover fills black (this section's own color) with white text — not
+   the base definition's red, which doesn't belong to this button's
+   scheme. */
+.program-item .label--button:hover {
+  background-color: #111111;
+  color: #FFFFFF;
+}
+
+/* -- TESTIMONIALS SECTION -- //
+   Label + intro reuse the exact same 12-column positioning as
+   .calendar-section-grid ("at the same position as calendar") — label at
+   column 1, intro spanning columns 4 through 10.
+
+   .testimonials-scroll is the mask (overflow:hidden); .testimonials-track
+   is the wide flex row that actually gets dragged (see TESTIMONIALS DRAG
+   SCROLL in animations.js) — the mask never moves, only the track does,
+   same "mask stays put, inner thing animates" split used for the nav
+   button hover swap elsewhere on this site. width:max-content on the
+   track is what makes it actually AS WIDE AS its 9 cards, instead of
+   shrinking to the mask's width — Draggable sizes its drag range off the
+   dragged element's own real width, so if the track stayed at the mask's
+   width there'd be no room to drag at all.
+
+   .testimonials-scroll breaks out of .testimonials-section's own
+   side padding (negative margin canceling it out) so the mask spans the
+   full viewport edge-to-edge instead of stopping 48px short on each
+   side — otherwise the last card could never be dragged past that
+   48px-from-the-edge line, which is the "gets cut off" the margin was
+   causing. .testimonials-track then adds that same 48px back as its OWN
+   left padding, so the first card still starts at the normal page
+   margin at rest — only the far/right end is now free to reach the true
+   edge once dragged.
+
+   Plain black background, edge-to-edge (was briefly inset 8px with
+   rounded corners, reverted back to flush), matching .gallery-stack
+   below it. White text throughout, including .testimonials-section-
+   headline and .testimonial-tag, which briefly stayed red — see
+   .testimonial-item below for its own card chrome (background, border)
+   flipping the same way. */
+.testimonials-section {
+  padding: 8rem var(--side-margin) 6rem;
+  border-radius: 0px;
+  background-color: #111111;
+}
+
+.testimonials-section-grid {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 0.75rem; /* 12px, matching .calendar-section-grid */
+}
+
+.testimonials-section-headline {
+  grid-column: 1 / -1;
+  justify-self: start;
+  align-self: start;
+  color: #FFFFFF; /* .section-headline's own default is red — overridden
+                       here now that this section's own background is
+                       black */
+}
+
+.testimonials-scroll {
+  margin-top: 6rem; /* 96px gap to the review cards */
+  margin-left: calc(-1 * var(--side-margin)); /* breaks out of the
+                                                  section's own side
+                                                  padding — see the note
+                                                  above .testimonials-section */
+  margin-right: calc(-1 * var(--side-margin));
+  overflow: hidden;
+}
+
+.testimonials-track {
+  position: relative; /* makes this the offsetParent for .testimonial-item
+                          — see the note on offsetLeft in TESTIMONIALS DRAG
+                          SCROLL in animations.js */
+  display: flex;
+  gap: .75rem; /* 24px — not specified, a reasonable card-to-card gap */
+  width: max-content;
+  padding-left: var(--side-margin); /* keeps the first card at the normal
+                                        48px page margin at rest, even
+                                        though the mask itself now runs
+                                        edge-to-edge */
+  padding-right: var(--side-margin); /* same 48px breathing room at the
+                                          other end — without it, dragging
+                                          all the way to the last card
+                                          left it flush against the true
+                                          viewport edge with nothing to
+                                          stop it there */
+  cursor: grab;
+}
+
+.testimonials-track:active {
+  cursor: grabbing;
+}
+
+/* Testimonial tag opts out of .label's bordered-pill chrome (no border,
+   no padding) in favor of flanking "(" "/" ")" brackets instead — the
+   text itself keeps everything else .label already gives it (weight,
+   size, uppercase); color is overridden below to white, now that this
+   section's own background is black (.label's own default is red).
+   display:inline-flex + gap is what spaces the brackets 6px from the
+   text on BOTH sides at once: in a flex container, the text between the
+   ::before and ::after pseudo-elements becomes its own anonymous flex
+   item, so the same gap value lands on either side of it for free,
+   without wrapping the text itself in a span. The pseudo-elements never
+   set their own color, so they inherit this same white from the element
+   they're attached to. */
+.testimonial-tag {
+  display: inline-flex;
+  align-items: center; /* centers the larger 24px brackets against the
+                           text's own shorter 16px line */
+  gap: 0.375rem; /* 6px — was 0.275rem (4.4px), a stale typo */
+  padding: 0;
+  border: none;
+  color: #FFFFFF;
+}
+
+.testimonial-tag::before,
+.testimonial-tag::after {
+  font-family: "Katarine", Arial, Helvetica, sans-serif;
+  font-weight: 500; /* Medium */
+  font-size: 1.5rem; /* 24px */
+  line-height: 1;
+}
+
+.testimonial-tag::before {
+  content: "(";
+}
+
+.testimonial-tag::after {
+  content: ")";
+}
+
+.testimonial-item {
+  flex-shrink: 0;
+  width: 516px;
+  padding: 2rem; /* 32px */
+  border: 1px solid rgba(255, 255, 255, 0.4); /* #FFFFFF @ 40% — was
+                                                  #111111 @ 40%, flipped
+                                                  now that the backdrop
+                                                  behind it is black
+                                                  instead of white */
+  border-radius: 20px;
+  background-color: transparent; /* was #F3F3F3 — the card no longer
+                                     needs its own fill now that
+                                     .testimonials-section itself is
+                                     black; the border alone still marks
+                                     out each card while dragging */
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start; /* left-aligned; top-alignment comes for free
+                               from normal block stacking */
+}
+
+.testimonial-name {
+  margin: 0.75rem 0 0; /* 12px gap from the tag above */
+  font-family: "Katarine", Arial, Helvetica, sans-serif;
+  font-weight: 600; /* Semibold */
+  font-size: 2rem; /* 32px */
+  line-height: 2.5rem; /* 40px */
+  color: #FFFFFF; /* was #111111 */
+}
+
+.testimonial-quote {
+  margin: 3rem 0 0; /* 48px gap from the name above */
+  font-family: "Katarine", Arial, Helvetica, sans-serif;
+  font-weight: 400; /* not specified — Regular */
+  font-size: 1.125rem; /* 18px */
+  line-height: 1.5rem; /* 24px */
+  color: #FFFFFF; /* was #111111 */
+  opacity: .7; /* unchanged */
+}
+
+/* -- GALLERY WHEEL SECTION -- //
+   15 photos stream from the bottom of the viewport to the top, scaling
+   0% -> 100% -> 0% as they pass through the vertical middle — like
+   watching a (very flat, edge-on) Ferris wheel from the side: each photo
+   only moves + scales, never rotates, so it always reads as flat and
+   facing the camera, and the scale-up/scale-down is what sells the
+   "swinging closer, then further away" illusion instead of any real
+   depth/rotation. The actual per-image math (position, scale, the
+   slightly curved path) lives in animations.js — see GALLERY WHEEL
+   REVEAL there; this file only sets up the box each photo sits in and
+   the pin/scroll-distance split.
+
+   Same tall-wrapper-plus-pinned-100vh-stack split .cards-section/
+   .cards-stack above uses — .gallery-scroll provides the scroll distance
+   the pin consumes, .gallery-stack (100vh) is the element that actually
+   gets pinned. (.contacts-section below USED to use this same split too,
+   but its own pinned accordion is gone now — see CONTACTS SECTION.) */
+.gallery-scroll {
+  position: relative;
+  height: 700vh; /* scroll distance for the full cycle — trimmed down
+                     from 800vh, which read as sluggish. Tune alongside
+                     GALLERY_VISIBLE_AT_ONCE in animations.js: taller
+                     here = slower/more deliberate pacing through the 15
+                     photos, shorter = faster/denser */
+}
+
+.gallery-stack {
+  position: sticky; /* overridden to fixed-during-pin by GSAP's own pin
+                        mechanism at scroll time — this is just the
+                        pre-JS/fallback layout, same as .contact-stack
+                        used to be before it was rebuilt */
+  top: 0;
+  width: 100%; /* plain edge-to-edge black — was briefly inset 8px with
+                   rounded corners, reverted back to flush */
+  height: 100vh;
+  overflow: hidden; /* photos travel well clear of the top/bottom edges
+                        at the start/end of their own journey (see
+                        GALLERY_EDGE_MARGIN in animations.js) — this is
+                        just a safety net, and now also what clips photos
+                        to the rounded/inset shape above */
+  background-color: #111111; /* placeholder backdrop so the photos read
+                                  as a distinct "gallery wall" against the
+                                  white sections before/after it — swap
+                                  for a different backdrop if wanted */
+}
+
+.gallery-image-wrap {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  border-radius: 2px;
+  overflow: hidden; /* rounds the corners of whatever size .gallery-image
+                        below ends up rendering at */
+  /* No width/height here, deliberately — an absolutely positioned box
+     with neither set shrink-wraps to its content, so this box always
+     matches .gallery-image's own rendered size below instead of forcing
+     every photo into the same cropped box. No transform here either —
+     animations.js drives x/y/scale/z-index on this box every frame; it's
+     centered on .gallery-stack's own center via top/left 50% +
+     animations.js's own xPercent/yPercent:-50, which centers correctly
+     regardless of each photo's own unique size. */
+}
+
+.gallery-image {
+  display: block;
+  height: 30vh; /* width is auto — each photo keeps its own natural
+                    aspect ratio instead of being cropped to a uniform
+                    box, so they read as unique rather than identical
+                    tiles. */
+  width: auto;
+}
+
+@media (max-width: 768px) {
+  .gallery-image {
+    width: 60vw; /* smaller than desktop's 30vh-tall box tends to render
+                     at — portrait phone screens have much less spare
+                     width to give up to a photo passing through */
+    height: auto;
+  }
+}
+
+/* -- VIDEO CONCEPT SECTION -- //
+   .video-rect holds a real YouTube embed now (was a plain gray
+   placeholder box). Cut down from a shrink+pin+snap sequence to just
+   this: plain scroll content (no scale, no pin — .video-rect just
+   scrolls into view like any other element), with only the 8 arrows
+   still animating (see VIDEO ARROWS REVEAL in animations.js). */
+.video-section {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20.5rem 3rem; /* 200px vertical — a bit more breathing room
+                             between this and .cards-section above it */
+}
+
+.video-rect {
+  position: relative; /* anchors .video-arrow's absolute positioning to
+                          this box, not some unrelated ancestor */
+  width: 600px;
+  aspect-ratio: 16 / 9;
+  /* No border-radius/overflow:hidden here — the 8 arrows are deliberately
+     positioned OUTSIDE this box (see the GAP math in VIDEO ARROWS REVEAL
+     in animations.js), so clipping at this level was cutting them off
+     entirely. The radius/clip that used to live here for the iframe's
+     own corners moved onto .video-embed itself below instead. */
+}
+
+.video-embed {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: none;
+  border-radius: 4px;
+  overflow: hidden; /* clips the iframe's own corners — an iframe can
+                        clip its own content this way without needing a
+                        clipping parent */
+}
+
+.video-arrow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 20px;
+  z-index: 1; /* keeps these above the iframe on the off chance their box
+                 ever overlaps it (they don't normally — see the GAP math
+                 in animations.js) */
+  pointer-events: none; /* never blocks clicks on the iframe underneath */
+}
+
+/* Fixed mask, sized to exactly fit the icon at rest (aspect-ratio
+   matches the SVG's own 49:85 viewBox) — .video-arrow-icon slides within
+   it (see animations.js) and whatever's currently outside this box gets
+   clipped, same overflow:hidden reveal technique as the intro text. */
+.video-arrow-mask {
+  width: 100%;
+  aspect-ratio: 49 / 85;
+  overflow: hidden;
+}
+
+.video-arrow-icon {
+  display: block;
+  width: 100%;
+  height: auto;
+  color: #EB2837; /* was #111111 */
+}
+
+/* -- CONTACT FORM SECTION -- //
+   Wireframe: no backend wired up yet — see CONTACT FORM in animations.js.
+   Was a 2-column layout (headline on the left, form on the right) — now
+   a single centered column instead: headline, then the form, both on
+   the same 6-column-wide, dead-center grid area (columns 4–9 of a
+   12-column row — 6 divides 12 evenly, so unlike the 3-across contacts
+   photos above, this one centers perfectly on plain integer grid lines,
+   no calc() needed). Neither has an explicit grid-row, so — same auto-
+   placement trick used by .footer-mission-headline/.footer-mission-text
+   — the headline claims row 1, and the form (wanting that same column
+   range) can't fit there anymore and auto-flows into row 2 below it.
+
+   Input/textarea share .contact-form-input for their common styling
+   (border, radius, font, the 40%-opacity placeholder vs. full-opacity
+   typed text); .contact-form-textarea only adds the height/resize
+   difference specific to the message box. */
+.contact-form-section {
+  min-height: 100vh;
+  padding: 6rem var(--side-margin); /* vertical padding not specified —
+                                        matches the other sections' rhythm;
+                                        side padding is the standard
+                                        48px page margin */
+}
+
+.contact-form-grid {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  row-gap: 4rem; /* 64px, headline to form */
+  align-items: start;
+}
+
+.contact-form-headline {
+  grid-column: 4 / 10;
+  justify-self: start;
+  align-self: start;
+  margin: 0;
+  font-family: "Katarine", Arial, Helvetica, sans-serif;
+  font-weight: 600; /* not specified — Semibold, matching every other
+                        big headline on the site */
+  font-size: 6rem; /* 96px */
+  line-height: 6rem; /* 96px */
+  color: #EB2837;
+}
+
+.contact-form {
+  grid-column: 4 / 10;
+  display: flex;
+  flex-direction: column;
+}
+
+.contact-form-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem; /* 24px between the email box and the message box — not
+                  respecified, kept as it was */
+}
+
+.contact-form-input {
+  width: 100%;
+  padding: 1.5rem; /* not specified — reasonable breathing room around
+                       the 24px text */
+  border: 1px solid rgba(17, 17, 17, 0.4); /* #111111 @ 40% */
+  border-radius: 12px;
+  background: none;
+  font-family: "Katarine", Arial, Helvetica, sans-serif;
+  font-weight: 400; /* not specified — Regular */
+  font-size: 1.5rem; /* 24px */
+  line-height: 2rem; /* 32px */
+  color: #111111; /* typed text — full opacity */
+}
+
+.contact-form-input::placeholder {
+  color: rgba(17, 17, 17, 0.4); /* #111111 @ 40% — matches the resting
+                                    "Email"/"Vaše zpráva" hint text */
+}
+
+.contact-form-textarea {
+  height: 200px; /* not specified — tall enough to read as a real
+                     message box, not just a taller single line */
+  resize: none; /* an unstyled browser resize handle would clash with
+                    how deliberately styled everything else here is */
+}
+
+.contact-form-consent {
+  margin-top: 2.5rem; /* 40px gap from the fields above */
+  display: flex;
+  align-items: flex-start; /* the checkbox top-aligns with the text's
+                               first line, rather than centering against
+                               the whole (multi-line) paragraph block */
+  gap: 0.75rem; /* not specified — reasonable default */
+  cursor: pointer;
+}
+
+/* appearance:none strips the browser's native checkbox so the 28px/6px/
+   40%-opacity-border spec can actually apply — a native checkbox ignores
+   most of that styling entirely. The checkmark itself (below, on
+   :checked) is a classic CSS-only trick (a box's corner, rotated 45°)
+   rather than an image, so no new asset is needed for it. */
+.contact-form-checkbox {
+  appearance: none;
+  -webkit-appearance: none;
+  position: relative;
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  margin: 0;
+  border: 1px solid rgba(17, 17, 17, 0.4); /* #111111 @ 40% */
+  border-radius: 6px;
+  background-color: transparent;
+  cursor: pointer;
+}
+
+.contact-form-checkbox:checked {
+  background-color: #EB2837; /* not specified — reuses the brand red for
+                                 a clear, legible checked state */
+  border-color: #EB2837;
+}
+
+.contact-form-checkbox:checked::after {
+  content: "";
+  position: absolute;
+  left: 9px;
+  top: 4px;
+  width: 7px;
+  height: 13px;
+  border: solid #FFFFFF;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg); /* an estimate, not measured pixel-by-pixel —
+                                retune left/top/width/height if the
+                                checkmark reads off-center */
+}
+
+.contact-form-consent-text {
+  max-width: 24rem; /* 384px — was stretching the full width of the form
+                        (minus the checkbox), reading as one long wide
+                        paragraph; wraps into a narrower, more readable
+                        column instead */
+  font-family: "Katarine", Arial, Helvetica, sans-serif;
+  font-weight: 400; /* Regular — was Medium */
+  font-size: 1rem; /* 16px */
+  line-height: 1.5rem; /* 24px */
+  color: #111111;
+  opacity: 0.4;
+}
+
+/* Same "buttons in the footer" look as .footer-social-button (56px text,
+   same padding) — but filled red/borderless like the plain .nav-button--
+   fill default, not transparent-with-a-white-border like the footer's
+   own. Full width instead of the footer version's own natural pill
+   size, to reach "as wide as the entire form". No extra JS needed for
+   the hover text-slide — NAV BUTTON HOVER SWAP in animations.js already
+   targets every .nav-button-label generically. */
+.contact-form-submit {
+  margin-top: 2rem; /* 32px gap from the checkbox row above */
+  width: 100%;
+  padding: 1.5rem 3.5rem; /* 24px 56px, matching .footer-social-button */
+  font-size: 3.5rem; /* 56px */
+  line-height: 3.5rem; /* 56px */
+}
+
+/* -- FOOTER -- //
+   .footer-content spans columns 5 through 12 of a 12-column grid — the
+   first 4 columns are deliberately left empty (an asymmetric inset, not
+   the usual symmetric --side-margin centering used elsewhere on the site).
+
+   Reuses existing components rather than duplicating them: .menu-divider
+   for the 1px/40%-opacity line, and .nav-button/.nav-button-label for the
+   3 social links — including that button's JS-driven hover swap, which
+   needs no new JS at all here: NAV BUTTON HOVER SWAP in animations.js
+   already targets .nav-button-label generically (not scoped to the
+   navbar), so any element with that class anywhere in the page gets the
+   same track-slide hover for free. Only color/size/spacing are overridden
+   via .footer-social-button. */
+.footer {
+  background-color: #111111;
+  padding: 2.5rem var(--side-margin) 0; /* top padding not specified —
+                                          matches the other sections'
+                                          rhythm; side padding is the
+                                          standard 48px page margin;
+                                          bottom is 0 — .footer-legal's
+                                          own 32px margin-bottom is what
+                                          gives the last row breathing
+                                          room instead */
+}
+
+.footer-grid {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+}
+
+/* Top/left-aligned in column 1, matching the .calendar-section-label
+   convention — same reasoning: without align-self/justify-self, a grid
+   item stretches to fill its cell by default. */
+.footer-logo-arrow {
+  grid-column: 1 / 2;
+  justify-self: start;
+  align-self: start;
+  width: 48px;
+  padding: 0;
+  border: none;
+  background: none;
+  color: #FFFFFF;
+  cursor: pointer;
+  transform-origin: center; /* not specified — the default anyway, stated
+                                explicitly since .hero-logo/.navbar-logo
+                                nearby deliberately use off-center origins
+                                and this makes the contrast intentional */
+}
+
+.footer-logo-arrow svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.footer-content {
+  grid-column: 5 / -1;
+}
+
+/* A fresh nested 12-column grid (same convention as .calendar-grid inside
+   .calendar-section-grid) scoped to .footer-content's own width, so
+   .footer-mission-text's "5 columns" below has a concrete meaning. The
+   headline explicitly spans all 12 (a grid item with no span set would
+   otherwise auto-place into just 1 column and wrap badly); the text's
+   own span-5 then has no room left in that row and wraps to the next one
+   automatically — no explicit grid-row needed on either. */
+.footer-mission {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  row-gap: 1rem; /* 16px, between the headline and the text below it */
+  column-gap: 0.75rem; /* 12px, matching the sitewide grid-gap convention */
+}
+
+.footer-mission-headline {
+  grid-column: 1 / -1;
+  margin: 0;
+  font-family: "Katarine", Arial, Helvetica, sans-serif;
+  font-weight: 600; /* Semibold */
+  font-size: 2rem; /* 32px */
+  line-height: 2.5rem; /* 40px */
+  color: #FFFFFF;
+}
+
+.footer-mission-text {
+  grid-column: span 5;
+  margin: 0;
+  font-family: "Katarine", Arial, Helvetica, sans-serif;
+  font-weight: 400; /* Regular */
+  font-size: 1.25rem; /* 20px */
+  line-height: 1.5rem; /* 24px */
+  color: #FFFFFF; /* not specified — white for legibility on #111111,
+                      matching the rest of the footer's text */
+}
+
+/* .menu-divider used to also be used by the menu overlay itself (a
+   divider between the nav list and the social icons) — that's gone now
+   that the overlay's own spacing handles that separation (see
+   .menu-overlay's own 96px gap), so this class's only remaining
+   consumer is .footer-divider below, which just adds its own margin on
+   top. Kept the shared name rather than renaming, since the markup
+   (index.html) still combines both classes on the same element. */
+.menu-divider {
+  height: 1px;
+  background-color: rgba(255, 255, 255, 0.4); /* #FFFFFF @ 40% */
+}
+
+.footer-divider {
+  margin: 4rem 0; /* 64px */
+}
+
+.footer-social {
+  display: flex;
+  flex-direction: column; /* stacked, not side by side */
+  gap: 2rem; /* 32px */
+  align-items: flex-start; /* each button stays its own natural width,
+                               not stretched full-width by the column */
+}
+
+.footer-social-button {
+  gap: 1.25rem; /* 20px, between the text and the icon — overrides
+                   .nav-button's own 8px gap */
+  padding: 1.5rem 3.5rem; /* 24px 56px — overrides .nav-button's own */
+  background-color: transparent;
+  color: #FFFFFF;
+  border: 1px solid #FFFFFF;
+  text-decoration: none; /* .nav-button is normally only used on
+                             <button> elements, which don't need this;
+                             these are <a> tags, which get the browser's
+                             default underline unless reset */
+  font-size: 3.5rem; /* 56px — overrides .nav-button's own 20px; cascades
+                         down to .nav-button-label's height:1em too, so
+                         its mask still exactly fits one line at this
+                         larger size with no extra changes needed */
+  line-height: 3.5rem; /* 56px */
+}
+
+.footer-social-icon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  color: #FFFFFF;
+}
+
+.footer-legal {
+  display: flex;
+  justify-content: space-between; /* .footer-legal-links (the two
+                                       clickable ones) pinned to the far
+                                       left — first in DOM order — with
+                                       .footer-legal-notice pushed to the
+                                       far right */
+  align-items: center;
+  margin-top: 6rem; /* 96px, from .footer-social above */
+  margin-bottom: 2rem; /* 32px */
+}
+
+.footer-legal-notice {
+  margin: 0;
+  font-family: "Katarine", Arial, Helvetica, sans-serif;
+  font-weight: 500; /* Medium */
+  font-size: 0.875rem; /* 14px */
+  line-height: 1.125rem; /* 18px */
+  color: #FFFFFF; /* not specified — matches the rest of the footer text */
+}
+
+.footer-legal-links {
+  display: flex;
+  gap: 4rem; /* 64px */
+}
+
+.footer-legal-link {
+  font-family: "Katarine", Arial, Helvetica, sans-serif;
+  font-weight: 500; /* Medium */
+  font-size: 0.875rem; /* 14px */
+  line-height: 1.125rem; /* 18px */
+  color: #FFFFFF;
+  text-decoration: underline; /* permanently on for both links — not
+                                  something animated on hover here */
+}
+

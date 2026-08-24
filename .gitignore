@@ -1,0 +1,16 @@
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/*
+!.vscode/extensions.json
+
+# Local Claude Code settings (machine-specific, not shared)
+.claude/settings.local.json
+
+# Raw reference clone of the GSAP skills repo — the actual skills we use
+# live in the flattened .claude/skills/gsap-*/ folders (those ARE tracked);
+# this is just upstream README/examples/plugin scaffolding, easy to
+# re-clone from https://github.com/greensock/gsap-skills if ever needed.
+.claude/skills/gsap-skills/

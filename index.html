@@ -1,0 +1,879 @@
+<!DOCTYPE html>
+<html lang="cz">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Upper</title>
+    <link rel="icon" href="./assets/favicon_upper.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="./styles/main.css" />
+    <script src="./scripts/main.js" defer></script>
+
+    <!-- GSAP Script links -->
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15/dist/gsap.min.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15/dist/Flip.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15/dist/MorphSVGPlugin.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15/dist/Observer.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15/dist/Draggable.min.js"></script>
+    <!-- InertiaPlugin gives Draggable's throw/momentum feel; Draggable
+         works without it, just with a hard stop on release instead. -->
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15/dist/InertiaPlugin.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15/dist/ScrollTrigger.min.js"></script>
+    <!-- ScrollSmoother requires ScrollTrigger -->
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15/dist/ScrollSmoother.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15/dist/ScrollToPlugin.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15/dist/SplitText.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15/dist/TextPlugin.min.js"></script>
+
+    <!-- RoughEase, ExpoScaleEase and SlowMo are all included in the EasePack file -->    
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15/dist/EasePack.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15/dist/CustomEase.min.js"></script>
+    <!-- CustomBounce requires CustomEase -->
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15/dist/CustomBounce.min.js"></script>
+    <!-- CustomWiggle requires CustomEase -->
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15/dist/CustomWiggle.min.js"></script>
+
+    <script src="./scripts/animations.js" defer></script>
+
+</head>
+
+<body>
+    <header class="navbar">
+        <nav class="navbar-inner">
+            <a class="navbar-logo" href="https://fmk.utb.cz/" target="_blank" rel="noopener noreferrer" aria-label="FMK">
+                <img src="./assets/FMK_logo.svg" alt="FMK" width="204" height="32">
+            </a>
+
+            <div class="navbar-actions">
+                <button type="button" class="nav-button nav-button--outline nav-button--menu" aria-expanded="false">
+                    <span class="nav-button-label">Menu</span>
+                    <span class="hamburger" aria-hidden="true">
+                        <span class="hamburger-line"></span>
+                        <span class="hamburger-line"></span>
+                        <span class="hamburger-line"></span>
+                    </span>
+                </button>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Scrollable content lives in here; ScrollSmoother animates this pair
+         via transform, so fixed-position elements (navbar, the docking
+         logo) must stay OUTSIDE it or they'd stop tracking the viewport. -->
+    <div id="smooth-wrapper">
+    <div id="smooth-content">
+
+    <section class="hero">
+        <div class="hero-logo" aria-label="UPPER logo" role="button" tabindex="0">
+        <svg viewBox="0 0 1118 378" xmlns="http://www.w3.org/2000/svg" fill="none">
+            <defs>
+            <clipPath id="clip-shape-1"><rect x="0.58" y="-11.86" width="87.87" height="408.54"/></clipPath>
+            <clipPath id="clip-shape-2"><rect x="116.84" y="54.69" width="155.58" height="273.83"/></clipPath>
+            <clipPath id="clip-shape-3"><rect x="319.92" y="54.71" width="150.82" height="268.77"/></clipPath>
+            <clipPath id="clip-shape-4"><rect x="505.57" y="54.71" width="150.82" height="268.77"/></clipPath>
+            <clipPath id="clip-shape-5"><rect x="691.24" y="54.69" width="130.89" height="268.79"/></clipPath>
+            <clipPath id="clip-shape-6"><rect x="860.06" y="54.69" width="153.4" height="273.3"/></clipPath>
+            <clipPath id="clip-shape-7"><rect x="1029.47" y="-11.83" width="87.84" height="408.53"/></clipPath>
+            </defs>
+    
+            <g class="shape-mask" clip-path="url(#clip-shape-1)">
+            <path id="shape-1" fill="#EB2837" d="M62.997 20.3634L83.9015 32.7298C88.6616 35.5758 89.5935 40.0337 86.4452 46.028C65.5408 82.1448 48.7417 113.829 48.7417 192.082C48.7417 275.095 67.1275 298.871 86.4452 339.421C89.6187 345.44 88.9638 349.873 84.8585 352.089L60.4532 364.758C58.8917 365.715 56.6501 366.672 54.4337 366.672C49.3713 366.672 46.5001 364.455 43.9815 360.652C15.1435 316.3 0.585938 274.491 0.585938 192.107C0.585938 109.724 14.8413 70.1059 43.6793 24.4939C47.155 19.4063 50.3284 18.147 53.8041 18.147C57.2798 18.147 60.4532 18.7767 62.997 20.3634Z"/>
+            </g>
+    
+            <g class="shape-mask" clip-path="url(#clip-shape-2)">
+            <path id="shape-2" fill="#EB2837" d="M153.919 74.6898C160.266 74.6898 165.001 78.1654 165.001 85.4694V235.654C165.001 254.342 179.583 263.535 194.796 263.535C210.008 263.535 224.263 253.083 224.263 235.654V87.0561C224.263 78.8203 227.437 74.6898 234.086 74.6898H261.337C267.684 74.6898 272.419 78.1654 272.419 85.4694V235.654C272.419 274.944 239.476 308.517 194.796 308.517C150.116 308.517 116.845 273.357 116.845 234.697V86.7287C116.845 76.2765 122.889 74.6898 129.211 74.6898H153.919Z"/>
+            </g>
+    
+            <g class="shape-mask" clip-path="url(#clip-shape-3)">
+            <path id="shape-3" fill="#EB2837" d="M328.483 303.455C322.464 303.455 319.92 299.022 319.92 292.373V87.0561C319.92 78.8203 323.068 74.7149 329.743 74.7149H394.043C440.939 74.7149 470.734 106.701 470.734 143.473C470.734 180.245 433.66 211.274 398.173 211.274H384.548C373.44 211.274 368.076 217.621 368.076 230.289V293.028C368.076 300.004 364.902 303.48 358.883 303.48H328.458L328.483 303.455ZM395.025 166.896C409.28 166.896 421.949 158.03 421.949 143.775C421.949 127.606 410.54 119.37 393.111 119.37H380.744C372.181 119.37 368.076 123.5 368.076 131.409V152.641C368.076 162.463 372.836 166.896 380.115 166.896H395.025Z"/>
+            </g>
+    
+            <g class="shape-mask" clip-path="url(#clip-shape-4)">
+            <path id="shape-4" fill="#EB2837" d="M514.13 303.455C508.11 303.455 505.567 299.022 505.567 292.373V87.0561C505.567 78.8203 508.74 74.7149 515.389 74.7149H579.714C626.611 74.7149 656.381 106.701 656.381 143.473C656.381 180.245 619.307 211.274 583.82 211.274H570.194C559.112 211.274 553.722 217.621 553.722 230.289V293.028C553.722 300.004 550.574 303.48 544.529 303.48H514.105L514.13 303.455ZM580.671 166.896C594.927 166.896 607.595 158.03 607.595 143.775C607.595 127.606 596.186 119.37 578.757 119.37H566.416C557.853 119.37 553.722 123.5 553.722 131.409V152.641C553.722 162.463 558.483 166.896 565.787 166.896H580.671Z"/>
+            </g>
+    
+            <g class="shape-mask" clip-path="url(#clip-shape-5)">
+            <path id="shape-5" fill="#EB2837" d="M702.32 303.455C693.127 303.455 691.238 297.108 691.238 288.57V85.4694C691.238 78.1906 694.084 74.6898 699.474 74.6898H811.955C818.604 74.6898 822.105 77.8632 822.105 83.8827V109.875C822.105 116.524 818.932 120.025 812.283 120.025H753.347C744.154 120.025 739.419 124.785 739.419 134.607V152.364C739.419 162.186 744.784 166.946 755.564 166.946H791.051C798.657 166.946 802.46 170.12 802.46 176.139V199.89C802.46 207.496 799.312 211.299 792.965 211.299H750.199C742.92 211.299 739.419 215.732 739.419 224.925V246.459C739.419 254.392 744.784 258.17 755.891 258.17H810.394C818.327 258.17 822.13 260.714 822.13 265.449V295.244C822.13 300.634 818.655 303.48 811.98 303.48H702.345L702.32 303.455Z"/>
+            </g>
+    
+            <g class="shape-mask" clip-path="url(#clip-shape-6)">
+            <path id="shape-6" fill="#EB2837" d="M935.165 221.726C931.69 214.447 928.844 212.861 924.084 212.861H915.193C910.458 212.861 908.216 217.293 908.216 226.159V293.003C908.216 300.281 905.698 303.455 898.394 303.455H869.253C863.234 303.455 860.061 299.652 860.061 292.373V87.6858C860.061 78.8203 862.277 74.6898 869.556 74.6898H942.444C985.235 74.6898 1012.46 110.177 1012.46 145.034C1012.46 166.896 997.904 187.498 987.124 196.691C979.518 202.711 979.191 202.711 983.321 212.533L1012.46 283.507C1014.68 289.527 1013.42 292.7 1006.14 296.176L981.13 307.258C976.37 309.474 971.937 306.301 969.721 302.196L935.165 221.726ZM937.382 167.526C954.811 167.526 964.003 155.184 964.003 143.448C964.003 131.107 953.551 119.999 935.795 119.999H920.91C913.304 119.999 908.241 123.475 908.241 132.038V153.27C908.241 161.834 912.045 167.526 919.651 167.526H937.407H937.382Z"/>
+            </g>
+    
+            <g class="shape-mask" clip-path="url(#clip-shape-7)">
+            <path id="shape-7" fill="#EB2837" d="M1074.24 24.4939C1103.06 70.1311 1117.31 113.224 1117.31 192.107C1117.31 270.99 1103.38 316.955 1073.92 360.678C1071.4 364.481 1068.53 366.697 1063.46 366.697C1061.25 366.697 1059.03 365.74 1057.44 364.783L1033.06 352.114C1028.93 349.898 1028.3 345.465 1031.48 339.446C1050.82 298.896 1069.18 275.12 1069.18 192.107C1069.18 113.854 1052.38 82.17 1031.48 46.0532C1028.3 40.0337 1029.26 35.601 1034 32.755L1054.9 20.3886C1057.42 18.8019 1060.62 18.1722 1064.09 18.1722C1067.57 18.1722 1070.74 19.4315 1074.24 24.5191"/>
+            </g>
+    
+        </svg>
+        </div>
+    </section>
+
+    <section class="intro-text">
+        <!-- Populated by animations.js (see INTRO ARROWS PARALLAX) — 24
+             decorative Arrow_Up icons, scattered and parallax-scrolled. -->
+        <div class="intro-arrows" aria-hidden="true"></div>
+
+        <div class="intro-text-mask">
+            <h2 class="intro-text-heading intro-text-heading--real">Jsme platforma pro rozvoj kulturních a kreativních odvětví</h2>
+        </div>
+    </section>
+
+    <section class="cards-section" id="cards-section">
+        <div class="cards-stack">
+            <h2 class="cards-heading">Kdo jsme a co děláme</h2>
+
+            <div class="cards-row">
+                <div class="card card--1">
+                    <div class="card-content">
+                        <div class="card-title">Upper</div>
+                        <h3 class="card-headline">Podporujeme studenty a absolventy v profesním růstu a realizaci vlastních nápadů</h3>
+                        <div class="card-footer">
+                            <p class="card-text">Prostřednictvím vzdělávacích aktivit, odborných setkání a praktických zkušeností podporujeme jejich cestu od nápadu k vlastnímu projektu, profesnímu uplatnění nebo podnikání.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card card--2" data-cursor="spoluprace.fmk.utb.cz">
+                    <div class="card-content">
+                        <div class="card-title">Spolupráce</div>
+                        <h3 class="card-headline">Nabízíme spolupráci firmám, organizacím a institucím napříč kreativními obory</h3>
+                        <div class="card-footer">
+                            <a href="#" class="label label--button card-button">
+                                Přejít na web
+                                <svg class="label-button-icon" viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                                    <path d="M9.98523 9.03211C9.98468 9.34576 9.73019 9.59974 9.41646 9.59974H8.31272C7.99665 9.59974 7.7412 9.34211 7.74397 9.02613L7.78312 4.56605C7.78535 4.31179 7.47812 4.18268 7.29798 4.36219L1.8067 9.83411C1.58473 10.0553 1.22562 10.0553 1.00365 9.83411L0.167247 9.00066C-0.0557491 8.77845 -0.0557491 8.4174 0.167247 8.19519L5.64095 2.74078C5.82084 2.56153 5.69335 2.25437 5.43936 2.2551L0.949262 2.26815C0.636143 2.26906 0.38118 2.01678 0.378853 1.70375L0.370555 0.587566C0.368211 0.272267 0.622936 0.0152646 0.938326 0.014718L9.43024 8.73168e-07C9.74514 -0.000544868 10.0005 0.254801 10 0.569615L9.98523 9.03211Z" fill="currentColor"/>
+                                </svg>
+                            </a>
+                            <p class="card-text">Propojujeme studenty s reálnými zadáními z praxe a tím vytváříme prostor pro nová partnerství, zkušenosti a profesní příležitosti.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card card--3" data-cursor="robota.utb.cz">
+                    <div class="card-content">
+                        <div class="card-title">Robota</div>
+                        <h3 class="card-headline">Otevřená dílna ROBOTA poskytuje technologie a odbornou podporu pro tvorbu a realizaci projektů.</h3>
+                        <div class="card-footer">
+                            <a href="#" class="label label--button card-button">
+                                Přejít na web
+                                <svg class="label-button-icon" viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                                    <path d="M9.98523 9.03211C9.98468 9.34576 9.73019 9.59974 9.41646 9.59974H8.31272C7.99665 9.59974 7.7412 9.34211 7.74397 9.02613L7.78312 4.56605C7.78535 4.31179 7.47812 4.18268 7.29798 4.36219L1.8067 9.83411C1.58473 10.0553 1.22562 10.0553 1.00365 9.83411L0.167247 9.00066C-0.0557491 8.77845 -0.0557491 8.4174 0.167247 8.19519L5.64095 2.74078C5.82084 2.56153 5.69335 2.25437 5.43936 2.2551L0.949262 2.26815C0.636143 2.26906 0.38118 2.01678 0.378853 1.70375L0.370555 0.587566C0.368211 0.272267 0.622936 0.0152646 0.938326 0.014718L9.43024 8.73168e-07C9.74514 -0.000544868 10.0005 0.254801 10 0.569615L9.98523 9.03211Z" fill="currentColor"/>
+                                </svg>
+                            </a>
+                            <p class="card-text">Prostor pro tvoření a vzdělávací aktivity umožňuje studentům, firmám, školám i široké veřejnosti proměňovat nápady v prototypy, produkty, umělecká díla a inovativní řešení.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- No pin/scale — it's plain scroll content; only the 8 arrows
+         still animate (a one-time reveal as it scrolls into view, see
+         VIDEO ARROWS REVEAL in animations.js). -->
+    <section class="video-section">
+        <div class="video-rect">
+            <iframe class="video-embed" src="https://www.youtube.com/embed/CD2AAoQaBrA" title="UPPER" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+            <div class="video-arrow">
+                <div class="video-arrow-mask">
+                    <svg class="video-arrow-icon" viewBox="0 0 49 85" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                        <path d="M11.9158 44.9811H2.99431C1.62107 44.9811 -1.35275 42.6893 0.702551 39.1517L21.8649 1.3923C22.8925 -0.326517 25.639 -0.553876 26.6667 1.27407L47.829 39.2608C48.7475 41.0887 48.9749 44.9811 45.5372 44.9811H36.2702C33.9784 44.9811 32.8417 46.4725 32.8417 49.4464V80.2213C32.8417 82.8496 31.814 84.2228 29.6405 84.2228H19.0002C16.5993 84.2228 15.4534 82.9678 15.4534 80.5578L15.4534 48.8643C15.4534 46.2361 14.3076 44.972 11.9067 44.972" fill="currentColor"/>
+                    </svg>
+                </div>
+            </div>
+            <div class="video-arrow">
+                <div class="video-arrow-mask">
+                    <svg class="video-arrow-icon" viewBox="0 0 49 85" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                        <path d="M11.9158 44.9811H2.99431C1.62107 44.9811 -1.35275 42.6893 0.702551 39.1517L21.8649 1.3923C22.8925 -0.326517 25.639 -0.553876 26.6667 1.27407L47.829 39.2608C48.7475 41.0887 48.9749 44.9811 45.5372 44.9811H36.2702C33.9784 44.9811 32.8417 46.4725 32.8417 49.4464V80.2213C32.8417 82.8496 31.814 84.2228 29.6405 84.2228H19.0002C16.5993 84.2228 15.4534 82.9678 15.4534 80.5578L15.4534 48.8643C15.4534 46.2361 14.3076 44.972 11.9067 44.972" fill="currentColor"/>
+                    </svg>
+                </div>
+            </div>
+            <div class="video-arrow">
+                <div class="video-arrow-mask">
+                    <svg class="video-arrow-icon" viewBox="0 0 49 85" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                        <path d="M11.9158 44.9811H2.99431C1.62107 44.9811 -1.35275 42.6893 0.702551 39.1517L21.8649 1.3923C22.8925 -0.326517 25.639 -0.553876 26.6667 1.27407L47.829 39.2608C48.7475 41.0887 48.9749 44.9811 45.5372 44.9811H36.2702C33.9784 44.9811 32.8417 46.4725 32.8417 49.4464V80.2213C32.8417 82.8496 31.814 84.2228 29.6405 84.2228H19.0002C16.5993 84.2228 15.4534 82.9678 15.4534 80.5578L15.4534 48.8643C15.4534 46.2361 14.3076 44.972 11.9067 44.972" fill="currentColor"/>
+                    </svg>
+                </div>
+            </div>
+            <div class="video-arrow">
+                <div class="video-arrow-mask">
+                    <svg class="video-arrow-icon" viewBox="0 0 49 85" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                        <path d="M11.9158 44.9811H2.99431C1.62107 44.9811 -1.35275 42.6893 0.702551 39.1517L21.8649 1.3923C22.8925 -0.326517 25.639 -0.553876 26.6667 1.27407L47.829 39.2608C48.7475 41.0887 48.9749 44.9811 45.5372 44.9811H36.2702C33.9784 44.9811 32.8417 46.4725 32.8417 49.4464V80.2213C32.8417 82.8496 31.814 84.2228 29.6405 84.2228H19.0002C16.5993 84.2228 15.4534 82.9678 15.4534 80.5578L15.4534 48.8643C15.4534 46.2361 14.3076 44.972 11.9067 44.972" fill="currentColor"/>
+                    </svg>
+                </div>
+            </div>
+            <div class="video-arrow">
+                <div class="video-arrow-mask">
+                    <svg class="video-arrow-icon" viewBox="0 0 49 85" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                        <path d="M11.9158 44.9811H2.99431C1.62107 44.9811 -1.35275 42.6893 0.702551 39.1517L21.8649 1.3923C22.8925 -0.326517 25.639 -0.553876 26.6667 1.27407L47.829 39.2608C48.7475 41.0887 48.9749 44.9811 45.5372 44.9811H36.2702C33.9784 44.9811 32.8417 46.4725 32.8417 49.4464V80.2213C32.8417 82.8496 31.814 84.2228 29.6405 84.2228H19.0002C16.5993 84.2228 15.4534 82.9678 15.4534 80.5578L15.4534 48.8643C15.4534 46.2361 14.3076 44.972 11.9067 44.972" fill="currentColor"/>
+                    </svg>
+                </div>
+            </div>
+            <div class="video-arrow">
+                <div class="video-arrow-mask">
+                    <svg class="video-arrow-icon" viewBox="0 0 49 85" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                        <path d="M11.9158 44.9811H2.99431C1.62107 44.9811 -1.35275 42.6893 0.702551 39.1517L21.8649 1.3923C22.8925 -0.326517 25.639 -0.553876 26.6667 1.27407L47.829 39.2608C48.7475 41.0887 48.9749 44.9811 45.5372 44.9811H36.2702C33.9784 44.9811 32.8417 46.4725 32.8417 49.4464V80.2213C32.8417 82.8496 31.814 84.2228 29.6405 84.2228H19.0002C16.5993 84.2228 15.4534 82.9678 15.4534 80.5578L15.4534 48.8643C15.4534 46.2361 14.3076 44.972 11.9067 44.972" fill="currentColor"/>
+                    </svg>
+                </div>
+            </div>
+            <div class="video-arrow">
+                <div class="video-arrow-mask">
+                    <svg class="video-arrow-icon" viewBox="0 0 49 85" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                        <path d="M11.9158 44.9811H2.99431C1.62107 44.9811 -1.35275 42.6893 0.702551 39.1517L21.8649 1.3923C22.8925 -0.326517 25.639 -0.553876 26.6667 1.27407L47.829 39.2608C48.7475 41.0887 48.9749 44.9811 45.5372 44.9811H36.2702C33.9784 44.9811 32.8417 46.4725 32.8417 49.4464V80.2213C32.8417 82.8496 31.814 84.2228 29.6405 84.2228H19.0002C16.5993 84.2228 15.4534 82.9678 15.4534 80.5578L15.4534 48.8643C15.4534 46.2361 14.3076 44.972 11.9067 44.972" fill="currentColor"/>
+                    </svg>
+                </div>
+            </div>
+            <div class="video-arrow">
+                <div class="video-arrow-mask">
+                    <svg class="video-arrow-icon" viewBox="0 0 49 85" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                        <path d="M11.9158 44.9811H2.99431C1.62107 44.9811 -1.35275 42.6893 0.702551 39.1517L21.8649 1.3923C22.8925 -0.326517 25.639 -0.553876 26.6667 1.27407L47.829 39.2608C48.7475 41.0887 48.9749 44.9811 45.5372 44.9811H36.2702C33.9784 44.9811 32.8417 46.4725 32.8417 49.4464V80.2213C32.8417 82.8496 31.814 84.2228 29.6405 84.2228H19.0002C16.5993 84.2228 15.4534 82.9678 15.4534 80.5578L15.4534 48.8643C15.4534 46.2361 14.3076 44.972 11.9067 44.972" fill="currentColor"/>
+                    </svg>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Each item's image below matches its own event/program in
+         ./images (Talent.png, Ideathon.jpg, GameJam.png, Meet.png,
+         Bonfire.png). -->
+    <section class="programs-section" id="programs-section">
+        <h2 class="section-headline programs-headline">Projekty, akce a příležitosti</h2>
+        <div class="programs-grid">
+            <div class="program-item" data-cursor="Talent FMK">
+                <img class="program-image" src="./images/Talent.png" alt="Talent FMK">
+                <div class="program-text">
+                    <h3 class="program-headline">Talent FMK</h3>
+                    <p class="program-description">Soutěž, kde mají studenti FMK 24 hodin na zpracování marketingového zadání od firem přímo z praxe. Poté studenti prezentují své nápady před talentovou radou, která vybere vítěze. Cílem soutěže je propojit studenty s firmami a nabídnout kreativní řešení, která mohou vést k pracovním příležitostem a stážím.</p>
+                    <a href="#" class="label label--button card-button">
+                        Přejít na web
+                        <svg class="label-button-icon" viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                            <path d="M9.98523 9.03211C9.98468 9.34576 9.73019 9.59974 9.41646 9.59974H8.31272C7.99665 9.59974 7.7412 9.34211 7.74397 9.02613L7.78312 4.56605C7.78535 4.31179 7.47812 4.18268 7.29798 4.36219L1.8067 9.83411C1.58473 10.0553 1.22562 10.0553 1.00365 9.83411L0.167247 9.00066C-0.0557491 8.77845 -0.0557491 8.4174 0.167247 8.19519L5.64095 2.74078C5.82084 2.56153 5.69335 2.25437 5.43936 2.2551L0.949262 2.26815C0.636143 2.26906 0.38118 2.01678 0.378853 1.70375L0.370555 0.587566C0.368211 0.272267 0.622936 0.0152646 0.938326 0.014718L9.43024 8.73168e-07C9.74514 -0.000544868 10.0005 0.254801 10 0.569615L9.98523 9.03211Z" fill="currentColor"/>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+
+            <div class="program-item" data-cursor="Ideathon UTB">
+                <img class="program-image" src="./images/Ideathon.jpg" alt="Ideathon UTB">
+                <div class="program-text">
+                    <h3 class="program-headline">Ideathon UTB</h3>
+                    <p class="program-description">24hodinový workshop pro studenty UTB. Týmy řeší reálné výzvy institucí Zlínského kraje a na konci prezentují řešení porotě. Účastníci si odnáší zkušenost z praxe, spolupráci s institucemi a cenné profesní kontakty.</p>
+                    <a href="#" class="label label--button card-button">
+                        Přejít na web
+                        <svg class="label-button-icon" viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                            <path d="M9.98523 9.03211C9.98468 9.34576 9.73019 9.59974 9.41646 9.59974H8.31272C7.99665 9.59974 7.7412 9.34211 7.74397 9.02613L7.78312 4.56605C7.78535 4.31179 7.47812 4.18268 7.29798 4.36219L1.8067 9.83411C1.58473 10.0553 1.22562 10.0553 1.00365 9.83411L0.167247 9.00066C-0.0557491 8.77845 -0.0557491 8.4174 0.167247 8.19519L5.64095 2.74078C5.82084 2.56153 5.69335 2.25437 5.43936 2.2551L0.949262 2.26815C0.636143 2.26906 0.38118 2.01678 0.378853 1.70375L0.370555 0.587566C0.368211 0.272267 0.622936 0.0152646 0.938326 0.014718L9.43024 8.73168e-07C9.74514 -0.000544868 10.0005 0.254801 10 0.569615L9.98523 9.03211Z" fill="currentColor"/>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+
+            <div class="program-item" data-cursor="Game Jam">
+                <img class="program-image" src="./images/GameJam.png" alt="Game Jam">
+                <div class="program-text">
+                    <h3 class="program-headline">Game Jam</h3>
+                    <p class="program-description">Kreativní maraton, během kterého studenti a středoškoláci v týmech během 48 hodin vytvářejí počítačové hry na dané téma. Propojuje studenty různých oborů (zejména FMK a FAI), podporuje jejich kreativitu a spolupráci a umožňuje vyzkoušet si vývoj her v reálném čase. Pořádá ji Univerzita Tomáše Bati ve Zlíně (FMK a FAI) ve spolupráci s UPPER, Technologickým inovačním centrem Zlín a herními studii Polyperfect, Flying Rat Studio a Visiongame.cz.</p>
+                    <a href="#" class="label label--button card-button">
+                        Přejít na web
+                        <svg class="label-button-icon" viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                            <path d="M9.98523 9.03211C9.98468 9.34576 9.73019 9.59974 9.41646 9.59974H8.31272C7.99665 9.59974 7.7412 9.34211 7.74397 9.02613L7.78312 4.56605C7.78535 4.31179 7.47812 4.18268 7.29798 4.36219L1.8067 9.83411C1.58473 10.0553 1.22562 10.0553 1.00365 9.83411L0.167247 9.00066C-0.0557491 8.77845 -0.0557491 8.4174 0.167247 8.19519L5.64095 2.74078C5.82084 2.56153 5.69335 2.25437 5.43936 2.2551L0.949262 2.26815C0.636143 2.26906 0.38118 2.01678 0.378853 1.70375L0.370555 0.587566C0.368211 0.272267 0.622936 0.0152646 0.938326 0.014718L9.43024 8.73168e-07C9.74514 -0.000544868 10.0005 0.254801 10 0.569615L9.98523 9.03211Z" fill="currentColor"/>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+
+            <div class="program-item" data-cursor="Meet &amp; greet">
+                <img class="program-image" src="./images/Meet.png" alt="Meet &amp; greet">
+                <div class="program-text">
+                    <h3 class="program-headline">Meet &amp; greet</h3>
+                    <p class="program-description">Diskusní panel, který slouží k setkávání marketérů a kreativců. Cílem je vytvořit platformu pro inspirativní debaty, výměnu znalostí a navazování kontaktů. Tato událost vznikla z potřeby propojit talentované lidi, kteří po studiích zůstali ve Zlíně a podílejí se na rozvoji lokálních značek.</p>
+                    <a href="#" class="label label--button card-button">
+                        Přejít na web
+                        <svg class="label-button-icon" viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                            <path d="M9.98523 9.03211C9.98468 9.34576 9.73019 9.59974 9.41646 9.59974H8.31272C7.99665 9.59974 7.7412 9.34211 7.74397 9.02613L7.78312 4.56605C7.78535 4.31179 7.47812 4.18268 7.29798 4.36219L1.8067 9.83411C1.58473 10.0553 1.22562 10.0553 1.00365 9.83411L0.167247 9.00066C-0.0557491 8.77845 -0.0557491 8.4174 0.167247 8.19519L5.64095 2.74078C5.82084 2.56153 5.69335 2.25437 5.43936 2.2551L0.949262 2.26815C0.636143 2.26906 0.38118 2.01678 0.378853 1.70375L0.370555 0.587566C0.368211 0.272267 0.622936 0.0152646 0.938326 0.014718L9.43024 8.73168e-07C9.74514 -0.000544868 10.0005 0.254801 10 0.569615L9.98523 9.03211Z" fill="currentColor"/>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+
+            <div class="program-item" data-cursor="Bonfire@Zlín">
+                <img class="program-image" src="./images/Bonfire.png" alt="Bonfire@Zlín">
+                <div class="program-text">
+                    <h3 class="program-headline">Bonfire@Zlín</h3>
+                    <p class="program-description">Bonfire@Zlín je setkání herních vývojářů, jehož cílem je sjednotit lokální komunitu a podpořit sdílení znalostí v oboru. Akce nabízí inspirativní prezentace od odborníků z herního průmyslu a prostor pro neformální networking a diskuze. Pořádá ji UPPER – Centrum kreativních průmyslů a podnikání ve spolupráci s Fakultou multimediálních komunikací a Fakultou aplikované informatiky Univerzity Tomáše Bati ve Zlíně.</p>
+                    <a href="#" class="label label--button card-button">
+                        Přejít na web
+                        <svg class="label-button-icon" viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                            <path d="M9.98523 9.03211C9.98468 9.34576 9.73019 9.59974 9.41646 9.59974H8.31272C7.99665 9.59974 7.7412 9.34211 7.74397 9.02613L7.78312 4.56605C7.78535 4.31179 7.47812 4.18268 7.29798 4.36219L1.8067 9.83411C1.58473 10.0553 1.22562 10.0553 1.00365 9.83411L0.167247 9.00066C-0.0557491 8.77845 -0.0557491 8.4174 0.167247 8.19519L5.64095 2.74078C5.82084 2.56153 5.69335 2.25437 5.43936 2.2551L0.949262 2.26815C0.636143 2.26906 0.38118 2.01678 0.378853 1.70375L0.370555 0.587566C0.368211 0.272267 0.622936 0.0152646 0.938326 0.014718L9.43024 8.73168e-07C9.74514 -0.000544868 10.0005 0.254801 10 0.569615L9.98523 9.03211Z" fill="currentColor"/>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Placeholder: all 10 currently share the same example data — swap
+         each one's date/headline/location for the real event once known. -->
+    <section class="calendar-section" id="calendar-section">
+        <div class="calendar-section-grid">
+            <h2 class="section-headline calendar-section-headline">Kalendář akcí</h2>
+            <p class="calendar-section-intro">Sledujte aktuální program workshopů, soutěží, networkingových setkání a dalších aktivit centra UPPER.</p>
+
+            <div class="calendar-grid">
+            <div class="calendar-event" data-cursor="Přejít na událost">
+                <div class="calendar-event-date">
+                    <span class="calendar-event-day">So</span>
+                    <span class="calendar-event-number">10.</span>
+                    <span class="calendar-event-month">Říjen 2026</span>
+                </div>
+                <div class="calendar-event-info">
+                    <div class="calendar-event-info-inner">
+                        <div class="calendar-event-text">
+                            <h3 class="calendar-event-headline">Unistarter snídaně na UTB</h3>
+                            <p class="calendar-event-location">Univerzitní Centrum UTB</p>
+                        </div>
+                        <div class="calendar-event-arrow-wrapper">
+                            <svg class="calendar-event-arrow" viewBox="0 0 6 6" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                                <path d="M5.97064 5.62806L4.65905 5.62806L4.68842 2.2708L0.959217 6L0 5.04078L3.71941 1.32137L0.362153 1.33116L0.352365 0.00978838L5.98042 0L5.97064 5.62806Z" fill="currentColor"/>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="calendar-event" data-cursor="Přejít na událost">
+                <div class="calendar-event-date">
+                    <span class="calendar-event-day">Pá—Ne</span>
+                    <span class="calendar-event-number">13.—15.</span>
+                    <span class="calendar-event-month">Listopad 2026</span>
+                </div>
+                <div class="calendar-event-info">
+                    <div class="calendar-event-info-inner">
+                        <div class="calendar-event-text">
+                            <h3 class="calendar-event-headline">Creathon</h3>
+                            <p class="calendar-event-location">Laboratoř Kreativity</p>
+                        </div>
+                        <div class="calendar-event-arrow-wrapper">
+                            <svg class="calendar-event-arrow" viewBox="0 0 6 6" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                                <path d="M5.97064 5.62806L4.65905 5.62806L4.68842 2.2708L0.959217 6L0 5.04078L3.71941 1.32137L0.362153 1.33116L0.352365 0.00978838L5.98042 0L5.97064 5.62806Z" fill="currentColor"/>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="calendar-event" data-cursor="Přejít na událost">
+                <div class="calendar-event-date">
+                    <span class="calendar-event-day">Út</span>
+                    <span class="calendar-event-number">13.</span>
+                    <span class="calendar-event-month">Říjen 2026</span>
+                </div>
+                <div class="calendar-event-info">
+                    <div class="calendar-event-info-inner">
+                        <div class="calendar-event-text">
+                            <h3 class="calendar-event-headline">#18 Meet &amp; Greet</h3>
+                            <p class="calendar-event-location">Vzdělávací Komplex UTB</p>
+                        </div>
+                        <div class="calendar-event-arrow-wrapper">
+                            <svg class="calendar-event-arrow" viewBox="0 0 6 6" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                                <path d="M5.97064 5.62806L4.65905 5.62806L4.68842 2.2708L0.959217 6L0 5.04078L3.71941 1.32137L0.362153 1.33116L0.352365 0.00978838L5.98042 0L5.97064 5.62806Z" fill="currentColor"/>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="calendar-event" data-cursor="Přejít na událost">
+                <div class="calendar-event-date">
+                    <span class="calendar-event-day">Út—St</span>
+                    <span class="calendar-event-number">24.—25.</span>
+                    <span class="calendar-event-month">Listopad 2026</span>
+                </div>
+                <div class="calendar-event-info">
+                    <div class="calendar-event-info-inner">
+                        <div class="calendar-event-text">
+                            <h3 class="calendar-event-headline">Ideathon UTB</h3>
+                            <p class="calendar-event-location">Centrum Zlína</p>
+                        </div>
+                        <div class="calendar-event-arrow-wrapper">
+                            <svg class="calendar-event-arrow" viewBox="0 0 6 6" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                                <path d="M5.97064 5.62806L4.65905 5.62806L4.68842 2.2708L0.959217 6L0 5.04078L3.71941 1.32137L0.362153 1.33116L0.352365 0.00978838L5.98042 0L5.97064 5.62806Z" fill="currentColor"/>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="calendar-event" data-cursor="Přejít na událost">
+                <div class="calendar-event-date">
+                    <span class="calendar-event-day">Čt</span>
+                    <span class="calendar-event-number">15.</span>
+                    <span class="calendar-event-month">Říjen 2026</span>
+                </div>
+                <div class="calendar-event-info">
+                    <div class="calendar-event-info-inner">
+                        <div class="calendar-event-text">
+                            <h3 class="calendar-event-headline">Spin off Day na UTB</h3>
+                            <p class="calendar-event-location">Vědeckotechnický park</p>
+                        </div>
+                        <div class="calendar-event-arrow-wrapper">
+                            <svg class="calendar-event-arrow" viewBox="0 0 6 6" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                                <path d="M5.97064 5.62806L4.65905 5.62806L4.68842 2.2708L0.959217 6L0 5.04078L3.71941 1.32137L0.362153 1.33116L0.352365 0.00978838L5.98042 0L5.97064 5.62806Z" fill="currentColor"/>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="calendar-event" data-cursor="Přejít na událost">
+                <div class="calendar-event-date">
+                    <span class="calendar-event-day">Bude oznámeno</span>
+                    <span class="calendar-event-number">Listopad 2026</span>
+                </div>
+                <div class="calendar-event-info">
+                    <div class="calendar-event-info-inner">
+                        <div class="calendar-event-text">
+                            <h3 class="calendar-event-headline">Bonfire@Zlin</h3>
+                            <p class="calendar-event-location">Univerzitní Centrum UTB</p>
+                        </div>
+                        <div class="calendar-event-arrow-wrapper">
+                            <svg class="calendar-event-arrow" viewBox="0 0 6 6" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                                <path d="M5.97064 5.62806L4.65905 5.62806L4.68842 2.2708L0.959217 6L0 5.04078L3.71941 1.32137L0.362153 1.33116L0.352365 0.00978838L5.98042 0L5.97064 5.62806Z" fill="currentColor"/>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="calendar-event" data-cursor="Přejít na událost">
+                <div class="calendar-event-date">
+                    <span class="calendar-event-day">Út—St</span>
+                    <span class="calendar-event-number">20.—21.</span>
+                    <span class="calendar-event-month">Říjen 2026</span>
+                </div>
+                <div class="calendar-event-info">
+                    <div class="calendar-event-info-inner">
+                        <div class="calendar-event-text">
+                            <h3 class="calendar-event-headline">Talent FMK</h3>
+                            <p class="calendar-event-location">Budova FMK</p>
+                        </div>
+                        <div class="calendar-event-arrow-wrapper">
+                            <svg class="calendar-event-arrow" viewBox="0 0 6 6" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                                <path d="M5.97064 5.62806L4.65905 5.62806L4.68842 2.2708L0.959217 6L0 5.04078L3.71941 1.32137L0.362153 1.33116L0.352365 0.00978838L5.98042 0L5.97064 5.62806Z" fill="currentColor"/>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="calendar-event" data-cursor="Přejít na událost">
+                <div class="calendar-event-date">
+                    <span class="calendar-event-day">Bude oznámeno</span>
+                    <span class="calendar-event-number">Listopad 2026</span>
+                </div>
+                <div class="calendar-event-info">
+                    <div class="calendar-event-info-inner">
+                        <div class="calendar-event-text">
+                            <h3 class="calendar-event-headline">Game Jam</h3>
+                            <p class="calendar-event-location">Studio Digitálního Designu</p>
+                        </div>
+                        <div class="calendar-event-arrow-wrapper">
+                            <svg class="calendar-event-arrow" viewBox="0 0 6 6" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                                <path d="M5.97064 5.62806L4.65905 5.62806L4.68842 2.2708L0.959217 6L0 5.04078L3.71941 1.32137L0.362153 1.33116L0.352365 0.00978838L5.98042 0L5.97064 5.62806Z" fill="currentColor"/>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="calendar-event" data-cursor="Přejít na událost">
+                <div class="calendar-event-date">
+                    <span class="calendar-event-day">Út</span>
+                    <span class="calendar-event-number">3.</span>
+                    <span class="calendar-event-month">Listopad 2026</span>
+                </div>
+                <div class="calendar-event-info">
+                    <div class="calendar-event-info-inner">
+                        <div class="calendar-event-text">
+                            <h3 class="calendar-event-headline">#19 Meet &amp; Greet</h3>
+                            <p class="calendar-event-location">Univerzitní Centrum UTB</p>
+                        </div>
+                        <div class="calendar-event-arrow-wrapper">
+                            <svg class="calendar-event-arrow" viewBox="0 0 6 6" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                                <path d="M5.97064 5.62806L4.65905 5.62806L4.68842 2.2708L0.959217 6L0 5.04078L3.71941 1.32137L0.362153 1.33116L0.352365 0.00978838L5.98042 0L5.97064 5.62806Z" fill="currentColor"/>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="calendar-event" data-cursor="Přejít na událost">
+                <div class="calendar-event-date">
+                    <span class="calendar-event-day">Ne</span>
+                    <span class="calendar-event-number">6.</span>
+                    <span class="calendar-event-month">Prosinec 2026</span>
+                </div>
+                <div class="calendar-event-info">
+                    <div class="calendar-event-info-inner">
+                        <div class="calendar-event-text">
+                            <h3 class="calendar-event-headline">ČSOB Start It! akcelerační kemp</h3>
+                            <p class="calendar-event-location">Akcelerační centrum ČSOB</p>
+                        </div>
+                        <div class="calendar-event-arrow-wrapper">
+                            <svg class="calendar-event-arrow" viewBox="0 0 6 6" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                                <path d="M5.97064 5.62806L4.65905 5.62806L4.68842 2.2708L0.959217 6L0 5.04078L3.71941 1.32137L0.362153 1.33116L0.352365 0.00978838L5.98042 0L5.97064 5.62806Z" fill="currentColor"/>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="testimonials-section" id="testimonials-section">
+        <div class="testimonials-section-grid">
+            <h2 class="section-headline testimonials-section-headline">Co o nás říkají?</h2>
+        </div>
+
+        <div class="testimonials-scroll">
+            <!-- Placeholder: all 9 currently share the same example
+                 testimonial — swap each one's tag/name/quote for the real
+                 person once known. -->
+            <div class="testimonials-track">
+                <div class="testimonial-item">
+                    <span class="label testimonial-tag">Účastnice Ideathonu UTB</span>
+                    <h3 class="testimonial-name">Daniela Michnová</h3>
+                    <p class="testimonial-quote">„Zúčastnit se Ideathonu byla pro mě velmi přínosná zkušenost. Oceňuji především prostor pro otevřenou spolupráci a možnost zapojit se do týmu, kde jsme si mohli vzájemně rozdělit role podle silných stránek jednotlivců. Když se sejde skupina lidí, kteří se dokážou domluvit, navzájem se podpořit a konstruktivně reagovat na zpětnou vazbu, je to znát i na kvalitě výsledku. Líbilo se mi, že výstupy nebyly hodnoceny jen podle formy, ale i podle promyšlenosti. Zohledňovala se rizika, finanční stránka nebo udržitelnost. Celkově mě Ideathon motivoval dívat se na problémy komplexněji, vnímat sílu týmové spolupráce a uvědomit si, že i v časově omezeném formátu lze najít funkční a inspirativní řešení.“</p>
+                </div>
+
+                <div class="testimonial-item">
+                    <span class="label testimonial-tag">Účastnice Ideathonu UTB</span>
+                    <h3 class="testimonial-name">Daniela Michnová</h3>
+                    <p class="testimonial-quote">„Zúčastnit se Ideathonu byla pro mě velmi přínosná zkušenost. Oceňuji především prostor pro otevřenou spolupráci a možnost zapojit se do týmu, kde jsme si mohli vzájemně rozdělit role podle silných stránek jednotlivců. Když se sejde skupina lidí, kteří se dokážou domluvit, navzájem se podpořit a konstruktivně reagovat na zpětnou vazbu, je to znát i na kvalitě výsledku. Líbilo se mi, že výstupy nebyly hodnoceny jen podle formy, ale i podle promyšlenosti. Zohledňovala se rizika, finanční stránka nebo udržitelnost. Celkově mě Ideathon motivoval dívat se na problémy komplexněji, vnímat sílu týmové spolupráce a uvědomit si, že i v časově omezeném formátu lze najít funkční a inspirativní řešení.“</p>
+                </div>
+
+                <div class="testimonial-item">
+                    <span class="label testimonial-tag">Účastnice Ideathonu UTB</span>
+                    <h3 class="testimonial-name">Daniela Michnová</h3>
+                    <p class="testimonial-quote">„Zúčastnit se Ideathonu byla pro mě velmi přínosná zkušenost. Oceňuji především prostor pro otevřenou spolupráci a možnost zapojit se do týmu, kde jsme si mohli vzájemně rozdělit role podle silných stránek jednotlivců. Když se sejde skupina lidí, kteří se dokážou domluvit, navzájem se podpořit a konstruktivně reagovat na zpětnou vazbu, je to znát i na kvalitě výsledku. Líbilo se mi, že výstupy nebyly hodnoceny jen podle formy, ale i podle promyšlenosti. Zohledňovala se rizika, finanční stránka nebo udržitelnost. Celkově mě Ideathon motivoval dívat se na problémy komplexněji, vnímat sílu týmové spolupráce a uvědomit si, že i v časově omezeném formátu lze najít funkční a inspirativní řešení.“</p>
+                </div>
+
+                <div class="testimonial-item">
+                    <span class="label testimonial-tag">Účastnice Ideathonu UTB</span>
+                    <h3 class="testimonial-name">Daniela Michnová</h3>
+                    <p class="testimonial-quote">„Zúčastnit se Ideathonu byla pro mě velmi přínosná zkušenost. Oceňuji především prostor pro otevřenou spolupráci a možnost zapojit se do týmu, kde jsme si mohli vzájemně rozdělit role podle silných stránek jednotlivců. Když se sejde skupina lidí, kteří se dokážou domluvit, navzájem se podpořit a konstruktivně reagovat na zpětnou vazbu, je to znát i na kvalitě výsledku. Líbilo se mi, že výstupy nebyly hodnoceny jen podle formy, ale i podle promyšlenosti. Zohledňovala se rizika, finanční stránka nebo udržitelnost. Celkově mě Ideathon motivoval dívat se na problémy komplexněji, vnímat sílu týmové spolupráce a uvědomit si, že i v časově omezeném formátu lze najít funkční a inspirativní řešení.“</p>
+                </div>
+
+                <div class="testimonial-item">
+                    <span class="label testimonial-tag">Účastnice Ideathonu UTB</span>
+                    <h3 class="testimonial-name">Daniela Michnová</h3>
+                    <p class="testimonial-quote">„Zúčastnit se Ideathonu byla pro mě velmi přínosná zkušenost. Oceňuji především prostor pro otevřenou spolupráci a možnost zapojit se do týmu, kde jsme si mohli vzájemně rozdělit role podle silných stránek jednotlivců. Když se sejde skupina lidí, kteří se dokážou domluvit, navzájem se podpořit a konstruktivně reagovat na zpětnou vazbu, je to znát i na kvalitě výsledku. Líbilo se mi, že výstupy nebyly hodnoceny jen podle formy, ale i podle promyšlenosti. Zohledňovala se rizika, finanční stránka nebo udržitelnost. Celkově mě Ideathon motivoval dívat se na problémy komplexněji, vnímat sílu týmové spolupráce a uvědomit si, že i v časově omezeném formátu lze najít funkční a inspirativní řešení.“</p>
+                </div>
+
+                <div class="testimonial-item">
+                    <span class="label testimonial-tag">Účastnice Ideathonu UTB</span>
+                    <h3 class="testimonial-name">Daniela Michnová</h3>
+                    <p class="testimonial-quote">„Zúčastnit se Ideathonu byla pro mě velmi přínosná zkušenost. Oceňuji především prostor pro otevřenou spolupráci a možnost zapojit se do týmu, kde jsme si mohli vzájemně rozdělit role podle silných stránek jednotlivců. Když se sejde skupina lidí, kteří se dokážou domluvit, navzájem se podpořit a konstruktivně reagovat na zpětnou vazbu, je to znát i na kvalitě výsledku. Líbilo se mi, že výstupy nebyly hodnoceny jen podle formy, ale i podle promyšlenosti. Zohledňovala se rizika, finanční stránka nebo udržitelnost. Celkově mě Ideathon motivoval dívat se na problémy komplexněji, vnímat sílu týmové spolupráce a uvědomit si, že i v časově omezeném formátu lze najít funkční a inspirativní řešení.“</p>
+                </div>
+
+                <div class="testimonial-item">
+                    <span class="label testimonial-tag">Účastnice Ideathonu UTB</span>
+                    <h3 class="testimonial-name">Daniela Michnová</h3>
+                    <p class="testimonial-quote">„Zúčastnit se Ideathonu byla pro mě velmi přínosná zkušenost. Oceňuji především prostor pro otevřenou spolupráci a možnost zapojit se do týmu, kde jsme si mohli vzájemně rozdělit role podle silných stránek jednotlivců. Když se sejde skupina lidí, kteří se dokážou domluvit, navzájem se podpořit a konstruktivně reagovat na zpětnou vazbu, je to znát i na kvalitě výsledku. Líbilo se mi, že výstupy nebyly hodnoceny jen podle formy, ale i podle promyšlenosti. Zohledňovala se rizika, finanční stránka nebo udržitelnost. Celkově mě Ideathon motivoval dívat se na problémy komplexněji, vnímat sílu týmové spolupráce a uvědomit si, že i v časově omezeném formátu lze najít funkční a inspirativní řešení.“</p>
+                </div>
+
+                <div class="testimonial-item">
+                    <span class="label testimonial-tag">Účastnice Ideathonu UTB</span>
+                    <h3 class="testimonial-name">Daniela Michnová</h3>
+                    <p class="testimonial-quote">„Zúčastnit se Ideathonu byla pro mě velmi přínosná zkušenost. Oceňuji především prostor pro otevřenou spolupráci a možnost zapojit se do týmu, kde jsme si mohli vzájemně rozdělit role podle silných stránek jednotlivců. Když se sejde skupina lidí, kteří se dokážou domluvit, navzájem se podpořit a konstruktivně reagovat na zpětnou vazbu, je to znát i na kvalitě výsledku. Líbilo se mi, že výstupy nebyly hodnoceny jen podle formy, ale i podle promyšlenosti. Zohledňovala se rizika, finanční stránka nebo udržitelnost. Celkově mě Ideathon motivoval dívat se na problémy komplexněji, vnímat sílu týmové spolupráce a uvědomit si, že i v časově omezeném formátu lze najít funkční a inspirativní řešení.“</p>
+                </div>
+
+                <div class="testimonial-item">
+                    <span class="label testimonial-tag">Účastnice Ideathonu UTB</span>
+                    <h3 class="testimonial-name">Daniela Michnová</h3>
+                    <p class="testimonial-quote">„Zúčastnit se Ideathonu byla pro mě velmi přínosná zkušenost. Oceňuji především prostor pro otevřenou spolupráci a možnost zapojit se do týmu, kde jsme si mohli vzájemně rozdělit role podle silných stránek jednotlivců. Když se sejde skupina lidí, kteří se dokážou domluvit, navzájem se podpořit a konstruktivně reagovat na zpětnou vazbu, je to znát i na kvalitě výsledku. Líbilo se mi, že výstupy nebyly hodnoceny jen podle formy, ale i podle promyšlenosti. Zohledňovala se rizika, finanční stránka nebo udržitelnost. Celkově mě Ideathon motivoval dívat se na problémy komplexněji, vnímat sílu týmové spolupráce a uvědomit si, že i v časově omezeném formátu lze najít funkční a inspirativní řešení.“</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="gallery-section" id="gallery-section">
+        <!-- Tall wrapper providing scroll distance for the pin — only
+             .gallery-stack (100vh) gets pinned, same split used by
+             .cards-section/.cards-stack elsewhere on this site. Which
+             photo appears where/when
+             (position, scale, the curved path) is computed entirely at
+             runtime — see GALLERY WHEEL REVEAL in animations.js — this
+             markup is just 15 plain images in scroll-document order.
+
+             Placeholder content: cycles through the 8 currently-available
+             upper_gallery_*.jpg files (upper_gallery_6.jpg is missing
+             from images/ — add it and swap it back in here once it
+             exists). Decorative, not individually meaningful, hence
+             alt="". -->
+        <div class="gallery-scroll">
+            <div class="gallery-stack">
+                <div class="gallery-image-wrap"><img class="gallery-image" src="./images/upper_gallery_3.jpg" alt=""></div>
+                <div class="gallery-image-wrap"><img class="gallery-image" src="./images/upper_gallery_7.jpg" alt=""></div>
+                <div class="gallery-image-wrap"><img class="gallery-image" src="./images/upper_gallery_1.jpg" alt=""></div>
+                <div class="gallery-image-wrap"><img class="gallery-image" src="./images/upper_gallery_8.jpg" alt=""></div>
+                <div class="gallery-image-wrap"><img class="gallery-image" src="./images/upper_gallery_5.jpg" alt=""></div>
+                <div class="gallery-image-wrap"><img class="gallery-image" src="./images/upper_gallery_2.jpg" alt=""></div>
+                <div class="gallery-image-wrap"><img class="gallery-image" src="./images/upper_gallery_9.jpg" alt=""></div>
+                <div class="gallery-image-wrap"><img class="gallery-image" src="./images/upper_gallery_4.jpg" alt=""></div>
+                <div class="gallery-image-wrap"><img class="gallery-image" src="./images/upper_gallery_1.jpg" alt=""></div>
+                <div class="gallery-image-wrap"><img class="gallery-image" src="./images/upper_gallery_7.jpg" alt=""></div>
+                <div class="gallery-image-wrap"><img class="gallery-image" src="./images/upper_gallery_3.jpg" alt=""></div>
+                <div class="gallery-image-wrap"><img class="gallery-image" src="./images/upper_gallery_8.jpg" alt=""></div>
+                <div class="gallery-image-wrap"><img class="gallery-image" src="./images/upper_gallery_2.jpg" alt=""></div>
+                <div class="gallery-image-wrap"><img class="gallery-image" src="./images/upper_gallery_5.jpg" alt=""></div>
+                <div class="gallery-image-wrap"><img class="gallery-image" src="./images/upper_gallery_9.jpg" alt=""></div>
+            </div>
+        </div>
+    </section>
+
+    <section class="contacts-section" id="contacts-section">
+        <div class="contacts-section-grid">
+            <h2 class="section-headline contacts-section-headline">Kontakty</h2>
+        </div>
+
+        <!-- Fully rebuilt from the old pinned accordion — only the text
+             content and the 4 detail icons (phone/email/address/website)
+             survived; the per-team headline colors and the scroll-driven
+             collapse/expand are gone. See CONTACTS PHOTOS REVEAL in
+             animations.js for the reveal-on-scroll animation. -->
+        <div class="contacts-photos">
+            <div class="contact-person contact-person--1">
+                <img class="contact-photo" src="./images/Upper_contact_2.png" alt="Mgr. Jitka Alexová">
+                <div class="contact-person-text">
+                    <p class="contact-person-team">Upper</p>
+                    <p class="contact-person-name">Mgr. Jitka Alexová</p>
+                    <p class="contact-person-role">výkonná manažerka UPPER-Centrum kreativních průmyslů a podnikání</p>
+                    <p class="contact-person-detail">
+                        <svg class="contact-person-detail-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                            <path fill-rule="evenodd" clip-rule="evenodd" d="M7.64551 2C8.87216 2 9.97503 2.74686 10.4307 3.88574L11.4863 6.52148L11.5557 6.71484C11.8703 7.68971 11.6657 8.76356 11.0049 9.55664L10.4365 10.2363L10.4375 10.2373C10.1071 10.6338 10.1328 11.2176 10.499 11.584L12.416 13.502C12.7814 13.8673 13.3651 13.8935 13.7627 13.5625L14.4434 12.9951L14.6064 12.8691C15.4358 12.269 16.5196 12.1311 17.4785 12.5146L20.1143 13.5684C21.253 14.024 21.9998 15.1271 22 16.3535V19.1055C21.9998 20.7039 20.7043 22 19.1055 22C9.65849 22 2 14.3415 2 4.89453C2 3.29574 3.29605 2.00011 4.89453 2H7.64551ZM4.89453 4C4.40033 4.00011 4 4.40059 4 4.89453C4 13.2369 10.7631 20 19.1055 20C19.5993 20 19.9998 19.5997 20 19.1055V16.3535C19.9998 15.9958 19.8097 15.6698 19.5078 15.4922L19.3721 15.4258L16.7354 14.3711C16.437 14.2518 16.1027 14.2841 15.835 14.4512L15.7246 14.5312L15.0439 15.0986C13.9266 16.0298 12.3151 16.0189 11.2139 15.1094L11.001 14.916L9.08496 12.998C7.98863 11.9016 7.90648 10.1487 8.90039 8.95605L9.46875 8.27539C9.67463 8.02786 9.74719 7.69954 9.6709 7.39355L9.62891 7.26465L8.57422 4.62891C8.42236 4.24925 8.05441 4 7.64551 4H4.89453Z" fill="currentColor"/>
+                        </svg>
+                        +420-606-777-236
+                    </p>
+                    <p class="contact-person-detail">
+                        <svg class="contact-person-detail-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                            <path fill-rule="evenodd" clip-rule="evenodd" d="M17.7998 4C18.3433 4 18.8118 3.99893 19.1953 4.03028C19.5905 4.06261 19.9832 4.13448 20.3613 4.32715C20.9246 4.61418 21.3847 5.07225 21.6729 5.6377C21.8655 6.01581 21.9375 6.40889 21.9697 6.80372C22.0011 7.187 22 7.6548 22 8.19727V15.8037C22 16.3461 22.0011 16.8132 21.9697 17.1963C21.9374 17.5911 21.8655 17.9843 21.6729 18.3623C21.385 18.927 20.9251 19.3856 20.3613 19.6729C19.9833 19.8655 19.5902 19.9374 19.1953 19.9697C18.8123 20.001 18.345 20 17.8027 20H6.19727C5.6548 20 5.187 20.0011 4.80372 19.9697C4.40889 19.9375 4.01581 19.8655 3.6377 19.6729C3.0729 19.385 2.61446 18.926 2.32715 18.3623C2.13441 17.984 2.06259 17.5906 2.03028 17.1953C1.99893 16.8117 2 16.3434 2 15.7998V8.2002C2 7.65664 1.99893 7.18845 2.03028 6.80469C2.06258 6.40942 2.13437 6.01605 2.32715 5.6377C2.61475 5.07334 3.07334 4.61475 3.6377 4.32715C4.01605 4.13437 4.40942 4.06258 4.80469 4.03028C5.18845 3.99893 5.65664 4 6.2002 4H17.7998ZM19.9902 7.25293C18.9849 7.99886 17.7656 8.91748 16.7305 9.70411C16.1049 10.1795 15.5474 10.6056 15.1465 10.9121C14.946 11.0654 14.784 11.1883 14.6729 11.2734C14.6173 11.316 14.575 11.3498 14.5459 11.3721C14.5313 11.3832 14.5201 11.3918 14.5127 11.3975C14.509 11.4003 14.5058 11.4019 14.5039 11.4033L14.502 11.4053C14.4962 11.4097 14.4902 11.4147 14.4844 11.4189C13.8752 11.8657 13.3541 12.2688 12.751 12.4248C12.2584 12.5521 11.7406 12.5522 11.2481 12.4248C10.6454 12.2689 10.1267 11.8659 9.51856 11.4199C9.51389 11.4165 9.5095 11.4127 9.50489 11.4092L4.00879 7.25879C4.0009 7.50036 4 7.80144 4 8.2002V15.7998C4 16.3764 4.00127 16.749 4.02442 17.0322C4.04661 17.3037 4.08417 17.4046 4.10938 17.4541C4.20555 17.6427 4.35841 17.7961 4.5459 17.8916C4.59521 17.9167 4.69595 17.9544 4.9668 17.9766C5.24974 17.9997 5.62182 18 6.19727 18H17.8027C18.3779 18 18.7496 17.9996 19.0322 17.9766C19.3025 17.9545 19.4037 17.9167 19.4531 17.8916C19.6418 17.7955 19.796 17.6417 19.8916 17.4541C19.9167 17.4048 19.9544 17.3042 19.9766 17.0332C19.9997 16.7505 20 16.3791 20 15.8037V8.19727C20 7.79684 19.9983 7.49478 19.9902 7.25293ZM5.66114 6.00196L10.7012 9.80762L11.1611 10.1406C11.5277 10.4003 11.6437 10.461 11.749 10.4883C11.9133 10.5308 12.0867 10.5308 12.251 10.4883C12.3917 10.4518 12.552 10.3548 13.3008 9.80567C13.3079 9.80022 13.3178 9.79289 13.3291 9.78418C13.3584 9.76172 13.4016 9.72898 13.457 9.68653C13.5687 9.60101 13.7306 9.47692 13.9316 9.32325C14.3336 9.01594 14.8922 8.58908 15.5195 8.11231C16.397 7.44543 17.4134 6.67971 18.3213 6.00196C18.1682 6.00093 17.9956 6 17.7998 6H6.2002C5.99679 6 5.81879 6.00082 5.66114 6.00196Z" fill="currentColor"/>
+                        </svg>
+                        alexova@utb.cz
+                    </p>
+                    <p class="contact-person-detail">
+                        <svg class="contact-person-detail-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                            <path fill-rule="evenodd" clip-rule="evenodd" d="M12 6C13.6569 6 15 7.34315 15 9C15 10.6569 13.6569 12 12 12C10.3431 12 9 10.6569 9 9C9 7.34315 10.3431 6 12 6ZM12 8C11.4477 8 11 8.44772 11 9C11 9.55228 11.4477 10 12 10C12.5523 10 13 9.55228 13 9C13 8.44772 12.5523 8 12 8Z" fill="currentColor"/>
+                            <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C14.1182 2 16.1522 2.8318 17.6533 4.31641C19.1547 5.80132 19.9999 7.81817 20 9.92285C20 12.6392 18.8156 15.0595 17.4551 16.9512C16.0897 18.8495 14.487 20.2992 13.5107 21.0986C13.2831 21.2851 12.9825 21.5518 12.542 21.6758C12.2087 21.7696 11.7914 21.7696 11.458 21.6758C11.0174 21.5517 10.7146 21.2831 10.4893 21.0986C9.51295 20.2992 7.9104 18.8487 6.54492 16.9502C5.18441 15.0585 4 12.639 4 9.92285C4 7.81788 4.84522 5.80136 6.34668 4.31641C7.84776 2.83183 9.88182 2.00002 12 2ZM12 4C10.4052 4.00002 8.8783 4.62724 7.75391 5.73926C6.62985 6.85096 6 8.35559 6 9.92285C6 12.0582 6.93775 14.0704 8.16895 15.7822C9.3952 17.4871 10.8544 18.8128 11.7568 19.5518C11.826 19.6084 11.8772 19.6504 11.9219 19.6855C11.9577 19.7137 11.9827 19.731 12 19.7432C12.0172 19.7311 12.0422 19.7138 12.0781 19.6855C12.1227 19.6505 12.1738 19.6085 12.2432 19.5518C13.1456 18.8129 14.6049 17.488 15.8311 15.7832C17.0623 14.0714 18 12.0583 18 9.92285C17.9999 8.35565 17.37 6.84981 16.2461 5.73828C15.1217 4.6265 13.5946 4 12 4Z" fill="currentColor"/>
+                        </svg>
+                        Vavrečkova 7029, 760 01 Zlín
+                    </p>
+                    <p class="contact-person-detail">
+                        <svg class="contact-person-detail-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                            <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C17.5228 2 22 6.47715 22 12C22 17.5228 17.5228 22 12 22C6.47715 22 2 17.5228 2 12C2 6.47715 6.47715 2 12 2ZM9.02637 13C9.12806 14.9665 9.52351 16.6947 10.085 17.958C10.4129 18.696 10.7784 19.2311 11.1328 19.5684C11.482 19.9006 11.7731 20 12 20C12.2269 20 12.518 19.9006 12.8672 19.5684C13.2216 19.2311 13.5871 18.696 13.915 17.958C14.4765 16.6947 14.8719 14.9665 14.9736 13H9.02637ZM4.06445 13C4.40263 15.7111 6.09575 17.9992 8.44629 19.167C8.38161 19.0373 8.31782 18.9055 8.25781 18.7705C7.56803 17.2185 7.1266 15.204 7.02344 13H4.06445ZM16.9766 13C16.8734 15.204 16.432 17.2185 15.7422 18.7705C15.6821 18.9056 15.6175 19.0372 15.5527 19.167C17.9037 17.9994 19.5973 15.7114 19.9355 13H16.9766ZM8.44629 4.83203C6.09555 5.99972 4.40265 8.28879 4.06445 11H7.02344C7.1266 8.79597 7.56803 6.7815 8.25781 5.22949C8.31794 5.09422 8.38147 4.96197 8.44629 4.83203ZM12 4C11.7731 4 11.482 4.09945 11.1328 4.43164C10.7784 4.76891 10.4129 5.30403 10.085 6.04199C9.52351 7.30527 9.12806 9.03348 9.02637 11H14.9736C14.8719 9.03348 14.4765 7.30527 13.915 6.04199C13.5871 5.30403 13.2216 4.76891 12.8672 4.43164C12.518 4.09945 12.2269 4 12 4ZM15.7422 5.22949C16.432 6.7815 16.8734 8.79597 16.9766 11H19.9355C19.5973 8.28848 17.9039 5.9996 15.5527 4.83203C15.6176 4.96209 15.682 5.09409 15.7422 5.22949Z" fill="currentColor"/>
+                        </svg>
+                        fmk.utb.cz
+                    </p>
+                </div>
+            </div>
+
+            <div class="contact-person contact-person--2">
+                <img class="contact-photo" src="./images/Spoluprace_contact_2.png" alt="Ing. Lenka Jakešová, Ph.D.">
+                <div class="contact-person-text">
+                    <p class="contact-person-team">Spolupráce</p>
+                    <p class="contact-person-name">Ing. Lenka Jakešová, Ph.D.</p>
+                    <p class="contact-person-role">manažerka pro spolupráci s praxí UPPER – Centrum kreativních průmyslů a podnikání</p>
+                    <p class="contact-person-detail">
+                        <svg class="contact-person-detail-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                            <path fill-rule="evenodd" clip-rule="evenodd" d="M7.64551 2C8.87216 2 9.97503 2.74686 10.4307 3.88574L11.4863 6.52148L11.5557 6.71484C11.8703 7.68971 11.6657 8.76356 11.0049 9.55664L10.4365 10.2363L10.4375 10.2373C10.1071 10.6338 10.1328 11.2176 10.499 11.584L12.416 13.502C12.7814 13.8673 13.3651 13.8935 13.7627 13.5625L14.4434 12.9951L14.6064 12.8691C15.4358 12.269 16.5196 12.1311 17.4785 12.5146L20.1143 13.5684C21.253 14.024 21.9998 15.1271 22 16.3535V19.1055C21.9998 20.7039 20.7043 22 19.1055 22C9.65849 22 2 14.3415 2 4.89453C2 3.29574 3.29605 2.00011 4.89453 2H7.64551ZM4.89453 4C4.40033 4.00011 4 4.40059 4 4.89453C4 13.2369 10.7631 20 19.1055 20C19.5993 20 19.9998 19.5997 20 19.1055V16.3535C19.9998 15.9958 19.8097 15.6698 19.5078 15.4922L19.3721 15.4258L16.7354 14.3711C16.437 14.2518 16.1027 14.2841 15.835 14.4512L15.7246 14.5312L15.0439 15.0986C13.9266 16.0298 12.3151 16.0189 11.2139 15.1094L11.001 14.916L9.08496 12.998C7.98863 11.9016 7.90648 10.1487 8.90039 8.95605L9.46875 8.27539C9.67463 8.02786 9.74719 7.69954 9.6709 7.39355L9.62891 7.26465L8.57422 4.62891C8.42236 4.24925 8.05441 4 7.64551 4H4.89453Z" fill="currentColor"/>
+                        </svg>
+                        +420-732-707-445
+                    </p>
+                    <p class="contact-person-detail">
+                        <svg class="contact-person-detail-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                            <path fill-rule="evenodd" clip-rule="evenodd" d="M17.7998 4C18.3433 4 18.8118 3.99893 19.1953 4.03028C19.5905 4.06261 19.9832 4.13448 20.3613 4.32715C20.9246 4.61418 21.3847 5.07225 21.6729 5.6377C21.8655 6.01581 21.9375 6.40889 21.9697 6.80372C22.0011 7.187 22 7.6548 22 8.19727V15.8037C22 16.3461 22.0011 16.8132 21.9697 17.1963C21.9374 17.5911 21.8655 17.9843 21.6729 18.3623C21.385 18.927 20.9251 19.3856 20.3613 19.6729C19.9833 19.8655 19.5902 19.9374 19.1953 19.9697C18.8123 20.001 18.345 20 17.8027 20H6.19727C5.6548 20 5.187 20.0011 4.80372 19.9697C4.40889 19.9375 4.01581 19.8655 3.6377 19.6729C3.0729 19.385 2.61446 18.926 2.32715 18.3623C2.13441 17.984 2.06259 17.5906 2.03028 17.1953C1.99893 16.8117 2 16.3434 2 15.7998V8.2002C2 7.65664 1.99893 7.18845 2.03028 6.80469C2.06258 6.40942 2.13437 6.01605 2.32715 5.6377C2.61475 5.07334 3.07334 4.61475 3.6377 4.32715C4.01605 4.13437 4.40942 4.06258 4.80469 4.03028C5.18845 3.99893 5.65664 4 6.2002 4H17.7998ZM19.9902 7.25293C18.9849 7.99886 17.7656 8.91748 16.7305 9.70411C16.1049 10.1795 15.5474 10.6056 15.1465 10.9121C14.946 11.0654 14.784 11.1883 14.6729 11.2734C14.6173 11.316 14.575 11.3498 14.5459 11.3721C14.5313 11.3832 14.5201 11.3918 14.5127 11.3975C14.509 11.4003 14.5058 11.4019 14.5039 11.4033L14.502 11.4053C14.4962 11.4097 14.4902 11.4147 14.4844 11.4189C13.8752 11.8657 13.3541 12.2688 12.751 12.4248C12.2584 12.5521 11.7406 12.5522 11.2481 12.4248C10.6454 12.2689 10.1267 11.8659 9.51856 11.4199C9.51389 11.4165 9.5095 11.4127 9.50489 11.4092L4.00879 7.25879C4.0009 7.50036 4 7.80144 4 8.2002V15.7998C4 16.3764 4.00127 16.749 4.02442 17.0322C4.04661 17.3037 4.08417 17.4046 4.10938 17.4541C4.20555 17.6427 4.35841 17.7961 4.5459 17.8916C4.59521 17.9167 4.69595 17.9544 4.9668 17.9766C5.24974 17.9997 5.62182 18 6.19727 18H17.8027C18.3779 18 18.7496 17.9996 19.0322 17.9766C19.3025 17.9545 19.4037 17.9167 19.4531 17.8916C19.6418 17.7955 19.796 17.6417 19.8916 17.4541C19.9167 17.4048 19.9544 17.3042 19.9766 17.0332C19.9997 16.7505 20 16.3791 20 15.8037V8.19727C20 7.79684 19.9983 7.49478 19.9902 7.25293ZM5.66114 6.00196L10.7012 9.80762L11.1611 10.1406C11.5277 10.4003 11.6437 10.461 11.749 10.4883C11.9133 10.5308 12.0867 10.5308 12.251 10.4883C12.3917 10.4518 12.552 10.3548 13.3008 9.80567C13.3079 9.80022 13.3178 9.79289 13.3291 9.78418C13.3584 9.76172 13.4016 9.72898 13.457 9.68653C13.5687 9.60101 13.7306 9.47692 13.9316 9.32325C14.3336 9.01594 14.8922 8.58908 15.5195 8.11231C16.397 7.44543 17.4134 6.67971 18.3213 6.00196C18.1682 6.00093 17.9956 6 17.7998 6H6.2002C5.99679 6 5.81879 6.00082 5.66114 6.00196Z" fill="currentColor"/>
+                        </svg>
+                        jakesova@utb.cz
+                    </p>
+                    <p class="contact-person-detail">
+                        <svg class="contact-person-detail-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                            <path fill-rule="evenodd" clip-rule="evenodd" d="M12 6C13.6569 6 15 7.34315 15 9C15 10.6569 13.6569 12 12 12C10.3431 12 9 10.6569 9 9C9 7.34315 10.3431 6 12 6ZM12 8C11.4477 8 11 8.44772 11 9C11 9.55228 11.4477 10 12 10C12.5523 10 13 9.55228 13 9C13 8.44772 12.5523 8 12 8Z" fill="currentColor"/>
+                            <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C14.1182 2 16.1522 2.8318 17.6533 4.31641C19.1547 5.80132 19.9999 7.81817 20 9.92285C20 12.6392 18.8156 15.0595 17.4551 16.9512C16.0897 18.8495 14.487 20.2992 13.5107 21.0986C13.2831 21.2851 12.9825 21.5518 12.542 21.6758C12.2087 21.7696 11.7914 21.7696 11.458 21.6758C11.0174 21.5517 10.7146 21.2831 10.4893 21.0986C9.51295 20.2992 7.9104 18.8487 6.54492 16.9502C5.18441 15.0585 4 12.639 4 9.92285C4 7.81788 4.84522 5.80136 6.34668 4.31641C7.84776 2.83183 9.88182 2.00002 12 2ZM12 4C10.4052 4.00002 8.8783 4.62724 7.75391 5.73926C6.62985 6.85096 6 8.35559 6 9.92285C6 12.0582 6.93775 14.0704 8.16895 15.7822C9.3952 17.4871 10.8544 18.8128 11.7568 19.5518C11.826 19.6084 11.8772 19.6504 11.9219 19.6855C11.9577 19.7137 11.9827 19.731 12 19.7432C12.0172 19.7311 12.0422 19.7138 12.0781 19.6855C12.1227 19.6505 12.1738 19.6085 12.2432 19.5518C13.1456 18.8129 14.6049 17.488 15.8311 15.7832C17.0623 14.0714 18 12.0583 18 9.92285C17.9999 8.35565 17.37 6.84981 16.2461 5.73828C15.1217 4.6265 13.5946 4 12 4Z" fill="currentColor"/>
+                        </svg>
+                        Univerzitní 2431, 760 01 Zlín
+                    </p>
+                    <p class="contact-person-detail">
+                        <svg class="contact-person-detail-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                            <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C17.5228 2 22 6.47715 22 12C22 17.5228 17.5228 22 12 22C6.47715 22 2 17.5228 2 12C2 6.47715 6.47715 2 12 2ZM9.02637 13C9.12806 14.9665 9.52351 16.6947 10.085 17.958C10.4129 18.696 10.7784 19.2311 11.1328 19.5684C11.482 19.9006 11.7731 20 12 20C12.2269 20 12.518 19.9006 12.8672 19.5684C13.2216 19.2311 13.5871 18.696 13.915 17.958C14.4765 16.6947 14.8719 14.9665 14.9736 13H9.02637ZM4.06445 13C4.40263 15.7111 6.09575 17.9992 8.44629 19.167C8.38161 19.0373 8.31782 18.9055 8.25781 18.7705C7.56803 17.2185 7.1266 15.204 7.02344 13H4.06445ZM16.9766 13C16.8734 15.204 16.432 17.2185 15.7422 18.7705C15.6821 18.9056 15.6175 19.0372 15.5527 19.167C17.9037 17.9994 19.5973 15.7114 19.9355 13H16.9766ZM8.44629 4.83203C6.09555 5.99972 4.40265 8.28879 4.06445 11H7.02344C7.1266 8.79597 7.56803 6.7815 8.25781 5.22949C8.31794 5.09422 8.38147 4.96197 8.44629 4.83203ZM12 4C11.7731 4 11.482 4.09945 11.1328 4.43164C10.7784 4.76891 10.4129 5.30403 10.085 6.04199C9.52351 7.30527 9.12806 9.03348 9.02637 11H14.9736C14.8719 9.03348 14.4765 7.30527 13.915 6.04199C13.5871 5.30403 13.2216 4.76891 12.8672 4.43164C12.518 4.09945 12.2269 4 12 4ZM15.7422 5.22949C16.432 6.7815 16.8734 8.79597 16.9766 11H19.9355C19.5973 8.28848 17.9039 5.9996 15.5527 4.83203C15.6176 4.96209 15.682 5.09409 15.7422 5.22949Z" fill="currentColor"/>
+                        </svg>
+                        spoluprace.fmk.utb.cz
+                    </p>
+                </div>
+            </div>
+
+            <div class="contact-person contact-person--3">
+                <img class="contact-photo" src="./images/Robota_contact_2.png" alt="MgA. Jitka Honsová">
+                <div class="contact-person-text">
+                    <p class="contact-person-team">Robota</p>
+                    <p class="contact-person-name">MgA. Jitka Honsová</p>
+                    <p class="contact-person-role">manažerka otevřené kreativní dílny ROBOTA UPPER – Centrum kreativních průmyslů a podnikání</p>
+                    <p class="contact-person-detail">
+                        <svg class="contact-person-detail-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                            <path fill-rule="evenodd" clip-rule="evenodd" d="M7.64551 2C8.87216 2 9.97503 2.74686 10.4307 3.88574L11.4863 6.52148L11.5557 6.71484C11.8703 7.68971 11.6657 8.76356 11.0049 9.55664L10.4365 10.2363L10.4375 10.2373C10.1071 10.6338 10.1328 11.2176 10.499 11.584L12.416 13.502C12.7814 13.8673 13.3651 13.8935 13.7627 13.5625L14.4434 12.9951L14.6064 12.8691C15.4358 12.269 16.5196 12.1311 17.4785 12.5146L20.1143 13.5684C21.253 14.024 21.9998 15.1271 22 16.3535V19.1055C21.9998 20.7039 20.7043 22 19.1055 22C9.65849 22 2 14.3415 2 4.89453C2 3.29574 3.29605 2.00011 4.89453 2H7.64551ZM4.89453 4C4.40033 4.00011 4 4.40059 4 4.89453C4 13.2369 10.7631 20 19.1055 20C19.5993 20 19.9998 19.5997 20 19.1055V16.3535C19.9998 15.9958 19.8097 15.6698 19.5078 15.4922L19.3721 15.4258L16.7354 14.3711C16.437 14.2518 16.1027 14.2841 15.835 14.4512L15.7246 14.5312L15.0439 15.0986C13.9266 16.0298 12.3151 16.0189 11.2139 15.1094L11.001 14.916L9.08496 12.998C7.98863 11.9016 7.90648 10.1487 8.90039 8.95605L9.46875 8.27539C9.67463 8.02786 9.74719 7.69954 9.6709 7.39355L9.62891 7.26465L8.57422 4.62891C8.42236 4.24925 8.05441 4 7.64551 4H4.89453Z" fill="currentColor"/>
+                        </svg>
+                        +420-732-907-840
+                    </p>
+                    <p class="contact-person-detail">
+                        <svg class="contact-person-detail-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                            <path fill-rule="evenodd" clip-rule="evenodd" d="M17.7998 4C18.3433 4 18.8118 3.99893 19.1953 4.03028C19.5905 4.06261 19.9832 4.13448 20.3613 4.32715C20.9246 4.61418 21.3847 5.07225 21.6729 5.6377C21.8655 6.01581 21.9375 6.40889 21.9697 6.80372C22.0011 7.187 22 7.6548 22 8.19727V15.8037C22 16.3461 22.0011 16.8132 21.9697 17.1963C21.9374 17.5911 21.8655 17.9843 21.6729 18.3623C21.385 18.927 20.9251 19.3856 20.3613 19.6729C19.9833 19.8655 19.5902 19.9374 19.1953 19.9697C18.8123 20.001 18.345 20 17.8027 20H6.19727C5.6548 20 5.187 20.0011 4.80372 19.9697C4.40889 19.9375 4.01581 19.8655 3.6377 19.6729C3.0729 19.385 2.61446 18.926 2.32715 18.3623C2.13441 17.984 2.06259 17.5906 2.03028 17.1953C1.99893 16.8117 2 16.3434 2 15.7998V8.2002C2 7.65664 1.99893 7.18845 2.03028 6.80469C2.06258 6.40942 2.13437 6.01605 2.32715 5.6377C2.61475 5.07334 3.07334 4.61475 3.6377 4.32715C4.01605 4.13437 4.40942 4.06258 4.80469 4.03028C5.18845 3.99893 5.65664 4 6.2002 4H17.7998ZM19.9902 7.25293C18.9849 7.99886 17.7656 8.91748 16.7305 9.70411C16.1049 10.1795 15.5474 10.6056 15.1465 10.9121C14.946 11.0654 14.784 11.1883 14.6729 11.2734C14.6173 11.316 14.575 11.3498 14.5459 11.3721C14.5313 11.3832 14.5201 11.3918 14.5127 11.3975C14.509 11.4003 14.5058 11.4019 14.5039 11.4033L14.502 11.4053C14.4962 11.4097 14.4902 11.4147 14.4844 11.4189C13.8752 11.8657 13.3541 12.2688 12.751 12.4248C12.2584 12.5521 11.7406 12.5522 11.2481 12.4248C10.6454 12.2689 10.1267 11.8659 9.51856 11.4199C9.51389 11.4165 9.5095 11.4127 9.50489 11.4092L4.00879 7.25879C4.0009 7.50036 4 7.80144 4 8.2002V15.7998C4 16.3764 4.00127 16.749 4.02442 17.0322C4.04661 17.3037 4.08417 17.4046 4.10938 17.4541C4.20555 17.6427 4.35841 17.7961 4.5459 17.8916C4.59521 17.9167 4.69595 17.9544 4.9668 17.9766C5.24974 17.9997 5.62182 18 6.19727 18H17.8027C18.3779 18 18.7496 17.9996 19.0322 17.9766C19.3025 17.9545 19.4037 17.9167 19.4531 17.8916C19.6418 17.7955 19.796 17.6417 19.8916 17.4541C19.9167 17.4048 19.9544 17.3042 19.9766 17.0332C19.9997 16.7505 20 16.3791 20 15.8037V8.19727C20 7.79684 19.9983 7.49478 19.9902 7.25293ZM5.66114 6.00196L10.7012 9.80762L11.1611 10.1406C11.5277 10.4003 11.6437 10.461 11.749 10.4883C11.9133 10.5308 12.0867 10.5308 12.251 10.4883C12.3917 10.4518 12.552 10.3548 13.3008 9.80567C13.3079 9.80022 13.3178 9.79289 13.3291 9.78418C13.3584 9.76172 13.4016 9.72898 13.457 9.68653C13.5687 9.60101 13.7306 9.47692 13.9316 9.32325C14.3336 9.01594 14.8922 8.58908 15.5195 8.11231C16.397 7.44543 17.4134 6.67971 18.3213 6.00196C18.1682 6.00093 17.9956 6 17.7998 6H6.2002C5.99679 6 5.81879 6.00082 5.66114 6.00196Z" fill="currentColor"/>
+                        </svg>
+                        honsova@utb.cz
+                    </p>
+                    <p class="contact-person-detail">
+                        <svg class="contact-person-detail-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                            <path fill-rule="evenodd" clip-rule="evenodd" d="M12 6C13.6569 6 15 7.34315 15 9C15 10.6569 13.6569 12 12 12C10.3431 12 9 10.6569 9 9C9 7.34315 10.3431 6 12 6ZM12 8C11.4477 8 11 8.44772 11 9C11 9.55228 11.4477 10 12 10C12.5523 10 13 9.55228 13 9C13 8.44772 12.5523 8 12 8Z" fill="currentColor"/>
+                            <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C14.1182 2 16.1522 2.8318 17.6533 4.31641C19.1547 5.80132 19.9999 7.81817 20 9.92285C20 12.6392 18.8156 15.0595 17.4551 16.9512C16.0897 18.8495 14.487 20.2992 13.5107 21.0986C13.2831 21.2851 12.9825 21.5518 12.542 21.6758C12.2087 21.7696 11.7914 21.7696 11.458 21.6758C11.0174 21.5517 10.7146 21.2831 10.4893 21.0986C9.51295 20.2992 7.9104 18.8487 6.54492 16.9502C5.18441 15.0585 4 12.639 4 9.92285C4 7.81788 4.84522 5.80136 6.34668 4.31641C7.84776 2.83183 9.88182 2.00002 12 2ZM12 4C10.4052 4.00002 8.8783 4.62724 7.75391 5.73926C6.62985 6.85096 6 8.35559 6 9.92285C6 12.0582 6.93775 14.0704 8.16895 15.7822C9.3952 17.4871 10.8544 18.8128 11.7568 19.5518C11.826 19.6084 11.8772 19.6504 11.9219 19.6855C11.9577 19.7137 11.9827 19.731 12 19.7432C12.0172 19.7311 12.0422 19.7138 12.0781 19.6855C12.1227 19.6505 12.1738 19.6085 12.2432 19.5518C13.1456 18.8129 14.6049 17.488 15.8311 15.7832C17.0623 14.0714 18 12.0583 18 9.92285C17.9999 8.35565 17.37 6.84981 16.2461 5.73828C15.1217 4.6265 13.5946 4 12 4Z" fill="currentColor"/>
+                        </svg>
+                        Vavrečkova 7029, 760 01 Zlín
+                    </p>
+                    <p class="contact-person-detail">
+                        <svg class="contact-person-detail-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                            <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C17.5228 2 22 6.47715 22 12C22 17.5228 17.5228 22 12 22C6.47715 22 2 17.5228 2 12C2 6.47715 6.47715 2 12 2ZM9.02637 13C9.12806 14.9665 9.52351 16.6947 10.085 17.958C10.4129 18.696 10.7784 19.2311 11.1328 19.5684C11.482 19.9006 11.7731 20 12 20C12.2269 20 12.518 19.9006 12.8672 19.5684C13.2216 19.2311 13.5871 18.696 13.915 17.958C14.4765 16.6947 14.8719 14.9665 14.9736 13H9.02637ZM4.06445 13C4.40263 15.7111 6.09575 17.9992 8.44629 19.167C8.38161 19.0373 8.31782 18.9055 8.25781 18.7705C7.56803 17.2185 7.1266 15.204 7.02344 13H4.06445ZM16.9766 13C16.8734 15.204 16.432 17.2185 15.7422 18.7705C15.6821 18.9056 15.6175 19.0372 15.5527 19.167C17.9037 17.9994 19.5973 15.7114 19.9355 13H16.9766ZM8.44629 4.83203C6.09555 5.99972 4.40265 8.28879 4.06445 11H7.02344C7.1266 8.79597 7.56803 6.7815 8.25781 5.22949C8.31794 5.09422 8.38147 4.96197 8.44629 4.83203ZM12 4C11.7731 4 11.482 4.09945 11.1328 4.43164C10.7784 4.76891 10.4129 5.30403 10.085 6.04199C9.52351 7.30527 9.12806 9.03348 9.02637 11H14.9736C14.8719 9.03348 14.4765 7.30527 13.915 6.04199C13.5871 5.30403 13.2216 4.76891 12.8672 4.43164C12.518 4.09945 12.2269 4 12 4ZM15.7422 5.22949C16.432 6.7815 16.8734 8.79597 16.9766 11H19.9355C19.5973 8.28848 17.9039 5.9996 15.5527 4.83203C15.6176 4.96209 15.682 5.09409 15.7422 5.22949Z" fill="currentColor"/>
+                        </svg>
+                        robota.utb.cz
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Wireframe: no backend wired up yet — see CONTACT FORM in
+         animations.js, which just preventDefaults the submit for now. -->
+    <section class="contact-form-section">
+        <div class="contact-form-grid">
+            <h2 class="contact-form-headline">Napište nám</h2>
+
+            <form class="contact-form" action="#">
+                <div class="contact-form-fields">
+                    <input class="contact-form-input" type="email" name="email" placeholder="Email" required>
+                    <textarea class="contact-form-input contact-form-textarea" name="message" placeholder="Vaše zpráva" required></textarea>
+                </div>
+
+                <label class="contact-form-consent">
+                    <input type="checkbox" class="contact-form-checkbox" name="consent">
+                    <span class="contact-form-consent-text">Souhlasím se zpracováním svých osobních údajů (email), za účelem zasílání newsletterů o činnosti Centra kreativních průmyslů a podnikání (UPPER).</span>
+                </label>
+
+                <button type="submit" class="nav-button nav-button--fill contact-form-submit">
+                    <span class="nav-button-label">Odeslat →</span>
+                </button>
+            </form>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="footer-grid">
+            <button type="button" class="footer-logo-arrow" aria-label="Zpět nahoru">
+                <svg viewBox="0 0 50 49" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <path d="M8.64801 0.307112L11.5446 2.02066C12.2042 2.41502 12.3334 3.03274 11.8971 3.86682C9.00049 8.87136 6.67272 13.2617 6.67272 24.1048C6.67272 35.6076 9.22035 38.8986 11.8971 44.5208C12.3368 45.3549 12.2496 45.9691 11.6773 46.2763L8.29553 48.0317C8.07566 48.1643 7.76855 48.2969 7.46144 48.2969C6.75996 48.2969 6.3656 47.9898 6.01312 47.4628C2.02066 41.3136 0 35.5203 0 24.1048C0 12.6893 1.97529 7.19969 5.97124 0.879458C6.45285 0.177986 6.89258 0 7.37768 0C7.86278 0 8.29902 0.0872478 8.6515 0.307112" fill="currentColor"/>
+                    <path d="M20.238 24.4748H16.8144C16.2874 24.4748 15.1462 23.5953 15.9349 22.2377L24.056 7.74761C24.4503 7.08802 25.5043 7.00077 25.8987 7.70224L34.0197 22.2796C34.3722 22.9811 34.4594 24.4748 33.1402 24.4748H29.584C28.7045 24.4748 28.2683 25.0471 28.2683 26.1883V37.9982C28.2683 39.0068 27.8739 39.5337 27.0399 39.5337H22.9567C22.0353 39.5337 21.5956 39.0521 21.5956 38.1273V25.965C21.5956 24.9564 21.1559 24.4713 20.2345 24.4713" fill="currentColor"/>
+                    <path d="M44.0322 0.879458C48.0282 7.20318 50.0035 13.1744 50.0035 24.1048C50.0035 35.0352 48.0701 41.4008 43.9904 47.4628C43.6379 47.9898 43.2435 48.2969 42.5421 48.2969C42.2349 48.2969 41.9243 48.1643 41.708 48.0317L38.3262 46.2763C37.7539 45.9691 37.6666 45.3549 38.1064 44.5208C40.7831 38.9021 43.3308 35.6076 43.3308 24.1048C43.3308 13.2617 41.003 8.87136 38.1064 3.86682C37.6666 3.03274 37.7993 2.41851 38.4589 2.02066L41.3555 0.307112C41.708 0.0872478 42.1477 0 42.6293 0C43.1109 0 43.5506 0.177986 44.0357 0.879458" fill="currentColor"/>
+                </svg>
+            </button>
+
+            <div class="footer-content">
+                <div class="footer-mission">
+                    <h2 class="footer-mission-headline">Naše poslání</h2>
+                    <p class="footer-mission-text">Prostřednictvím síťování, akcí, aktivit a technologického zázemí vytváříme podpůrné prostředí pro transfer nápadů mezi akademickým světem a praxí v kulturně-kreativních odvětvích. Vyhledáváme příležitosti pro uplatnění nejrůznějších talentů a zvyšujeme profesní kompetence studentů a absolventů.</p>
+                </div>
+
+                <div class="menu-divider footer-divider"></div>
+
+                <div class="footer-social">
+                    <a class="nav-button footer-social-button" href="https://www.instagram.com/upper_zlin/" target="_blank" rel="noopener noreferrer">
+                        <span class="nav-button-label">Instagram</span>
+                        <svg class="footer-social-icon" viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                            <path d="M9.98523 9.03211C9.98468 9.34576 9.73019 9.59974 9.41646 9.59974H8.31272C7.99665 9.59974 7.7412 9.34211 7.74397 9.02613L7.78312 4.56605C7.78535 4.31179 7.47812 4.18268 7.29798 4.36219L1.8067 9.83411C1.58473 10.0553 1.22562 10.0553 1.00365 9.83411L0.167247 9.00066C-0.0557491 8.77845 -0.0557491 8.4174 0.167247 8.19519L5.64095 2.74078C5.82084 2.56153 5.69335 2.25437 5.43936 2.2551L0.949262 2.26815C0.636143 2.26906 0.38118 2.01678 0.378853 1.70375L0.370555 0.587566C0.368211 0.272267 0.622936 0.0152646 0.938326 0.014718L9.43024 8.73168e-07C9.74514 -0.000544868 10.0005 0.254801 10 0.569615L9.98523 9.03211Z" fill="currentColor"/>
+                        </svg>
+                    </a>
+
+                    <a class="nav-button footer-social-button" href="https://www.facebook.com/upperzlin/?locale=cs_CZ" target="_blank" rel="noopener noreferrer">
+                        <span class="nav-button-label">Facebook</span>
+                        <svg class="footer-social-icon" viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                            <path d="M9.98523 9.03211C9.98468 9.34576 9.73019 9.59974 9.41646 9.59974H8.31272C7.99665 9.59974 7.7412 9.34211 7.74397 9.02613L7.78312 4.56605C7.78535 4.31179 7.47812 4.18268 7.29798 4.36219L1.8067 9.83411C1.58473 10.0553 1.22562 10.0553 1.00365 9.83411L0.167247 9.00066C-0.0557491 8.77845 -0.0557491 8.4174 0.167247 8.19519L5.64095 2.74078C5.82084 2.56153 5.69335 2.25437 5.43936 2.2551L0.949262 2.26815C0.636143 2.26906 0.38118 2.01678 0.378853 1.70375L0.370555 0.587566C0.368211 0.272267 0.622936 0.0152646 0.938326 0.014718L9.43024 8.73168e-07C9.74514 -0.000544868 10.0005 0.254801 10 0.569615L9.98523 9.03211Z" fill="currentColor"/>
+                        </svg>
+                    </a>
+
+                    <a class="nav-button footer-social-button" href="https://www.youtube.com/channel/UCdl3-dcMUrfN-qCgow5KSNQ" target="_blank" rel="noopener noreferrer">
+                        <span class="nav-button-label">Youtube</span>
+                        <svg class="footer-social-icon" viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                            <path d="M9.98523 9.03211C9.98468 9.34576 9.73019 9.59974 9.41646 9.59974H8.31272C7.99665 9.59974 7.7412 9.34211 7.74397 9.02613L7.78312 4.56605C7.78535 4.31179 7.47812 4.18268 7.29798 4.36219L1.8067 9.83411C1.58473 10.0553 1.22562 10.0553 1.00365 9.83411L0.167247 9.00066C-0.0557491 8.77845 -0.0557491 8.4174 0.167247 8.19519L5.64095 2.74078C5.82084 2.56153 5.69335 2.25437 5.43936 2.2551L0.949262 2.26815C0.636143 2.26906 0.38118 2.01678 0.378853 1.70375L0.370555 0.587566C0.368211 0.272267 0.622936 0.0152646 0.938326 0.014718L9.43024 8.73168e-07C9.74514 -0.000544868 10.0005 0.254801 10 0.569615L9.98523 9.03211Z" fill="currentColor"/>
+                        </svg>
+                    </a>
+                </div>
+
+                <!-- Placeholder hrefs — real cookie policy/accessibility
+                     statement pages aren't wired up yet. -->
+                <div class="footer-legal">
+                    <div class="footer-legal-links">
+                        <a class="footer-legal-link" href="#">Zásady cookies</a>
+                        <a class="footer-legal-link" href="#">Prohlášení o přístupnosti.</a>
+                    </div>
+
+                    <p class="footer-legal-notice">Za obsah a technickou správu webu odpovídá MgA. Jitka Honsová (upper@utb.cz)</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    </div>
+    </div>
+
+    <!-- Single full-page panel now — .menu-window (a separate small
+         docked box) is gone, folded into this. See MENU OVERLAY in
+         animations.js. -->
+    <div class="menu-overlay" aria-hidden="true">
+            <ul class="menu-list">
+                <li class="menu-item"><a href="#cards-section"><span class="nav-button-label">Co děláme?</span></a></li>
+                <li class="menu-item"><a href="#programs-section"><span class="nav-button-label">Projekty a akce</span></a></li>
+                <li class="menu-item"><a href="#calendar-section"><span class="nav-button-label">Kalendář akcí</span></a></li>
+                <li class="menu-item"><a href="#testimonials-section"><span class="nav-button-label">Co o nás říkají?</span></a></li>
+                <li class="menu-item"><a href="#contacts-section"><span class="nav-button-label">Kontakty</span></a></li>
+            </ul>
+
+            <div class="menu-social">
+                <a class="menu-social-link" href="https://www.instagram.com/upper_zlin/" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
+                    <svg viewBox="0 0 26 26" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                        <g clip-path="url(#clip0_199_9664)">
+                            <path d="M13 2.29324C16.4734 2.29324 16.8848 2.30816 18.2508 2.36786C19.5203 2.42258 20.2059 2.63151 20.6629 2.80561C21.2672 3.03444 21.7039 3.31301 22.1559 3.75574C22.6129 4.20344 22.8922 4.62628 23.1258 5.21824C23.3035 5.66594 23.5168 6.34247 23.5727 7.58112C23.6336 8.92423 23.6488 9.32717 23.6488 12.7247C23.6488 16.1273 23.6336 16.5302 23.5727 17.8684C23.5168 19.112 23.3035 19.7835 23.1258 20.2313C22.8922 20.8232 22.6078 21.251 22.1559 21.6938C21.6988 22.1415 21.2672 22.4151 20.6629 22.6439C20.2059 22.818 19.5152 23.0269 18.2508 23.0816C16.8797 23.1413 16.4684 23.1562 13 23.1562C9.52656 23.1562 9.11524 23.1413 7.74922 23.0816C6.47969 23.0269 5.79414 22.818 5.33711 22.6439C4.73281 22.4151 4.29609 22.1365 3.84414 21.6938C3.38711 21.246 3.10781 20.8232 2.87422 20.2313C2.69648 19.7835 2.4832 19.107 2.42734 17.8684C2.36641 16.5253 2.35117 16.1223 2.35117 12.7247C2.35117 9.32219 2.36641 8.91926 2.42734 7.58112C2.4832 6.3375 2.69648 5.66594 2.87422 5.21824C3.10781 4.62628 3.39219 4.19847 3.84414 3.75574C4.30117 3.30804 4.73281 3.03444 5.33711 2.80561C5.79414 2.63151 6.48477 2.42258 7.74922 2.36786C9.11524 2.30816 9.52656 2.29324 13 2.29324ZM13 0C9.4707 0 9.02891 0.0149235 7.64258 0.0746173C6.26133 0.134311 5.31172 0.353189 4.48906 0.666582C3.63086 0.994898 2.90469 1.42768 2.18359 2.13903C1.45742 2.84541 1.01563 3.55676 0.680469 4.39247C0.360547 5.20332 0.137109 6.12857 0.0761719 7.48163C0.0152344 8.84464 0 9.27742 0 12.7347C0 16.192 0.0152344 16.6247 0.0761719 17.9828C0.137109 19.3358 0.360547 20.2661 0.680469 21.0719C1.01563 21.9126 1.45742 22.624 2.18359 23.3304C2.90469 24.0367 3.63086 24.4745 4.48398 24.7978C5.31172 25.1112 6.25625 25.3301 7.6375 25.3898C9.02383 25.4495 9.46563 25.4644 12.9949 25.4644C16.5242 25.4644 16.966 25.4495 18.3523 25.3898C19.7336 25.3301 20.6832 25.1112 21.5059 24.7978C22.359 24.4745 23.0852 24.0367 23.8063 23.3304C24.5273 22.624 24.9742 21.9126 25.3043 21.0769C25.6242 20.2661 25.8477 19.3408 25.9086 17.9878C25.9695 16.6297 25.9848 16.1969 25.9848 12.7397C25.9848 9.2824 25.9695 8.84962 25.9086 7.49158C25.8477 6.13852 25.6242 5.20829 25.3043 4.40242C24.9844 3.55676 24.5426 2.84541 23.8164 2.13903C23.0953 1.43265 22.3691 0.994898 21.516 0.671556C20.6883 0.358163 19.7438 0.139286 18.3625 0.0795918C16.9711 0.0149235 16.5293 0 13 0Z" fill="currentColor"/>
+                            <path d="M13 6.19336C9.31328 6.19336 6.32227 9.12333 6.32227 12.7348C6.32227 16.3463 9.31328 19.2763 13 19.2763C16.6867 19.2763 19.6777 16.3463 19.6777 12.7348C19.6777 9.12333 16.6867 6.19336 13 6.19336ZM13 16.9781C10.6082 16.9781 8.66836 15.0778 8.66836 12.7348C8.66836 10.3918 10.6082 8.49157 13 8.49157C15.3918 8.49157 17.3316 10.3918 17.3316 12.7348C17.3316 15.0778 15.3918 16.9781 13 16.9781Z" fill="currentColor"/>
+                            <path d="M21.5008 5.9344C21.5008 6.78006 20.8 7.46157 19.9418 7.46157C19.0785 7.46157 18.3828 6.77509 18.3828 5.9344C18.3828 5.08873 19.0836 4.40723 19.9418 4.40723C20.8 4.40723 21.5008 5.09371 21.5008 5.9344Z" fill="currentColor"/>
+                        </g>
+                    </svg>
+                </a>
+                <a class="menu-social-link" href="https://www.facebook.com/upperzlin/?locale=cs_CZ" target="_blank" rel="noopener noreferrer" aria-label="Facebook">
+                    <svg viewBox="0 0 26 26" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                        <path d="M13 0C5.82036 0 0 5.70158 0 12.7347C0 18.7068 4.19744 23.7181 9.85972 25.0945V16.6264H7.17912V12.7347H9.85972V11.0578C9.85972 6.72341 11.8622 4.71438 16.2063 4.71438C17.03 4.71438 18.4512 4.8728 19.0325 5.03071V8.55822C18.7257 8.52664 18.1927 8.51085 17.5308 8.51085C15.3993 8.51085 14.5756 9.30193 14.5756 11.3583V12.7347H18.8219L18.0924 16.6264H14.5756V25.3762C21.0127 24.6146 26.0005 19.2457 26.0005 12.7347C26 5.70158 20.1796 0 13 0Z" fill="currentColor"/>
+                    </svg>
+                </a>
+                <a class="menu-social-link" href="https://www.youtube.com/channel/UCdl3-dcMUrfN-qCgow5KSNQ" target="_blank" rel="noopener noreferrer" aria-label="YouTube">
+                    <svg viewBox="0 0 26 26" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                        <path d="M25.741 7.8002C25.741 7.8002 25.4871 6.00762 24.7051 5.22051C23.7148 4.18457 22.6078 4.17949 22.1 4.11855C18.4641 3.85449 13.0051 3.85449 13.0051 3.85449H12.9949C12.9949 3.85449 7.53594 3.85449 3.9 4.11855C3.39219 4.17949 2.28516 4.18457 1.29492 5.22051C0.512891 6.00762 0.264062 7.8002 0.264062 7.8002C0.264062 7.8002 0 9.90762 0 12.01V13.9803C0 16.0826 0.258984 18.19 0.258984 18.19C0.258984 18.19 0.512891 19.9826 1.28984 20.7697C2.28008 21.8057 3.58008 21.7701 4.15898 21.8818C6.24102 22.0799 13 22.1408 13 22.1408C13 22.1408 18.4641 22.1307 22.1 21.8717C22.6078 21.8107 23.7148 21.8057 24.7051 20.7697C25.4871 19.9826 25.741 18.19 25.741 18.19C25.741 18.19 26 16.0877 26 13.9803V12.01C26 9.90762 25.741 7.8002 25.741 7.8002ZM10.3137 16.3721V9.06465L17.3367 12.7311L10.3137 16.3721Z" fill="currentColor"/>
+                    </svg>
+                </a>
+            </div>
+    </div>
+
+    <!-- Follows the mouse; shows/hides + fills its text per whichever
+         [data-cursor] element is currently hovered — see the CONTEXT
+         CURSOR section in animations.js. -->
+    <div class="context-cursor" aria-hidden="true">
+        <span class="context-cursor-text"></span>
+        <svg class="context-cursor-icon" viewBox="0 0 6 6" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M5.97064 5.62806L4.65905 5.62806L4.68842 2.2708L0.959217 6L0 5.04078L3.71941 1.32137L0.362153 1.33116L0.352365 0.00978838L5.98042 0L5.97064 5.62806Z" fill="currentColor"/>
+        </svg>
+    </div>
+</body>
+
+</html>
