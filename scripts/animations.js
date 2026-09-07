@@ -238,8 +238,21 @@ tl.to("#shape-4", { y: 0 }, .1)
 //from "big, at its natural spot" down to "docked". Horizontal centering
 //is handled by a constant xPercent:-50, never tweened, so it can't drift
 //off-center mid-transition.
-const NAV_LOGO_HEIGHT = 40;
-const NAV_LOGO_TOP = 18;
+// A function, not a constant — needs to reflect whichever viewport width
+// is CURRENT each time it's read (both here at setup and again inside
+// heroToNavTl's own function-based fromTo values further down, which
+// already re-evaluate on every ScrollTrigger refresh/resize), not just
+// whatever width happened to be active the moment this script first ran.
+const getNavLogoHeight = () => (window.innerWidth <= 768 ? 28 : 40);
+// Was a flat constant (18) — now measures .navbar-inner's own live vertical
+// center (post align-items:center fix, main.css) and returns whatever
+// docked "top" makes the logo's OWN center land on that same line, so it
+// stays aligned with the FMK logo/menu button regardless of viewport or
+// either one's size (e.g. the mobile menu button's own square size).
+const getNavLogoTop = () => {
+  const rect = document.querySelector(".navbar-inner").getBoundingClientRect();
+  return rect.top + rect.height / 2 - getNavLogoHeight() / 2;
+};
 const SVG_ASPECT = 1118 / 378; // .hero-logo svg's viewBox ratio (width/height)
 
 const heroLogo = document.querySelector(".hero-logo");
@@ -279,17 +292,29 @@ const heroLogoStartRect = getHeroLogoNaturalRect();
 
 gsap.set(heroLogo, {
   position: "fixed",
-  top: NAV_LOGO_TOP,
+  top: getNavLogoTop(),
   left: "50%",
   xPercent: -50,
-  height: NAV_LOGO_HEIGHT,
+  height: getNavLogoHeight(),
   width: "auto",
   zIndex: 100, // below .menu-overlay's 150 (main.css) — the docked logo
                // must never render above the menu
   transformOrigin: "50% 0%",
-  scale: heroLogoStartRect.height / NAV_LOGO_HEIGHT,
-  y: heroLogoStartRect.top - NAV_LOGO_TOP,
+  scale: heroLogoStartRect.height / getNavLogoHeight(),
+  y: heroLogoStartRect.top - getNavLogoTop(),
 });
+
+// Keeps the docked "top" in sync with the navbar's own live center — the
+// gsap.set above only runs once, synchronously, before web fonts have
+// necessarily swapped in (which can shift .navbar-inner's own height by a
+// couple px) and invalidateOnRefresh below only re-measures the
+// function-based fromTo values, not this base "top". Re-synced on resize
+// (e.g. crossing the 768px breakpoint, or the menu button's square size
+// otherwise changing the row's height) and once more on window "load" —
+// same rationale as REFRESH AFTER FULL LOAD further down.
+const syncNavLogoTop = () => gsap.set(heroLogo, { top: getNavLogoTop() });
+window.addEventListener("resize", syncNavLogoTop);
+window.addEventListener("load", syncNavLogoTop);
 
 // Two distinct eases so scale and position each get their own bezier
 // "character" instead of both moving in lockstep — equivalent to CSS
@@ -364,12 +389,12 @@ const heroToNavTl = gsap.timeline({
 // instead of replaying whatever scale/y happened to be current at the time.
 heroToNavTl
   .fromTo(heroLogo,
-    { scale: () => getHeroLogoNaturalRect().height / NAV_LOGO_HEIGHT },
+    { scale: () => getHeroLogoNaturalRect().height / getNavLogoHeight() },
     { scale: 1, ease: heroToNavScaleEase },
     0
   )
   .fromTo(heroLogo,
-    { y: () => getHeroLogoNaturalRect().top - NAV_LOGO_TOP },
+    { y: () => getHeroLogoNaturalRect().top - getNavLogoTop() },
     { y: 0, ease: heroToNavMoveEase },
     0
   );
@@ -912,87 +937,154 @@ if (introArrowsContainer) {
 //into whatever section comes after this one.
 const cards = gsap.utils.toArray(".card");
 
+// Desktop and mobile get two COMPLETELY different treatments (pinned/
+// overlapping/rotated vs. a plain fade-up-on-scroll list — see the
+// mobile block in main.css for the layout half of that same split), not
+// just resized versions of the same one, so gsap.matchMedia() drives the
+// split rather than a plain innerWidth check: it automatically reverts
+// everything a callback created (tweens, ScrollTriggers, the pin
+// included) the moment the breakpoint is crossed, then re-runs whichever
+// branch now applies — covers a resize or an orientation change without
+// needing any manual cleanup of our own.
 if (cards.length) {
-  // Each card needs to start fully below the viewport. The offset for
-  // that has to be computed from the card's position RELATIVE TO
-  // .cards-stack, not card.getBoundingClientRect().top on its own —
-  // .cards-section sits ~200vh down the page (after the hero and
-  // intro-text sections), so at the moment this script runs (page load,
-  // scroll position 0) that raw top value reflects the card being far
-  // below the CURRENT viewport, not its eventual position once pinned.
-  // That previously produced a large NEGATIVE offset — pushing cards UP
-  // near/past their resting spot instead of down out of view, which is
-  // exactly why they were visible immediately and appeared to slide DOWN
-  // into place while scrolling, backwards from the intended effect.
-  // The card's offset relative to .cards-stack's own top, though, is
-  // stable regardless of scroll position — it's just .cards-row's fixed
-  // CSS position (see main.css) — and once pinned, .cards-stack's top
-  // will sit at the viewport's own top (y:0), so viewport height minus
-  // that stable offset is the correct amount to push each card down by.
-  const cardsStackEl = document.querySelector(".cards-stack");
-  const FIRST_CARD_PEEK = 80; // px of card--1 left showing above the
-                               // viewport's bottom edge before its own
-                               // reveal tween starts — same "don't start
-                               // from a hard blank" idea as the intro
-                               // arrows' deliberately-placed first arrow
+  gsap.matchMedia().add(
+    { isMobile: "(max-width: 768px)", isDesktop: "(min-width: 769px)" },
+    (context) => {
+      if (context.conditions.isMobile) {
+        // Mobile: no pin, no overlap, no rotation. Each card just fades
+        // up into place as it individually scrolls into view — same
+        // "top 80%"/once:true pattern as PROGRAMS SECTION REVEAL/
+        // CALENDAR EVENT REVEAL elsewhere in this file.
+        cards.forEach((card) => {
+          gsap.set(card, { y: 60, opacity: 0 });
+          gsap.to(card, {
+            y: 0,
+            opacity: 1,
+            duration: 0.8,
+            ease: "power3.out",
+            scrollTrigger: {
+              trigger: card,
+              start: "top 80%",
+              once: true,
+            },
+          });
+        });
+        return;
+      }
 
-  // Each card's RESTING state, once it arrives — not just y:0/rotation:0
-  // for all three anymore. The y values stagger the row into a slight
-  // "staircase" (card 2 sits 16px lower than card 1, card 3 40px lower —
-  // trimmed down from an earlier 24px/96px: combined with card--3's own
-  // 10° tilt, resting that much lower pushed its rotated bounding box
-  // low enough to also risk crossing the BOTTOM of the viewport on
-  // shorter screens, not just its sides), and the rotation values give
-  // each card its own fixed tilt, both measured from the card's own
-  // natural, unrotated CSS position/size — exactly what gsap.set below
-  // with rotation:0 establishes as the starting point, so "0 degrees at
-  // rest off-screen, rotating INTO its tilt as it rises" is literally
-  // what the tween from that start to this end does.
-  const CARD_REST = [
-    { y: 0, rotation: -4 },  // card--1: tilts left 4°
-    { y: 16, rotation: -1 }, // card--2: left 1°, rests 16px lower than card 1
-    { y: 40, rotation: 10 }, // card--3: right 10°, rests 40px lower than card 1
-  ];
+      // Desktop: three cards slide up from below, one at a time, and
+      // appear to "stick" once they arrive. .cards-stack is pinned for
+      // the entire height of .cards-section — GSAP's own pin, not CSS
+      // position:sticky, since ScrollSmoother moves #smooth-content via
+      // a transform, and a transform'd ancestor breaks native sticky the
+      // same way it breaks position:fixed (see the comment on
+      // #smooth-wrapper in index.html for the same issue elsewhere on
+      // this site). .cards-heading "becomes sticky" the exact same way —
+      // it's pinned together with the row as part of the same
+      // .cards-stack, so the moment the pin engages is already the
+      // moment the first card starts moving; no separate trigger needed
+      // to keep those two in sync.
+      //
+      // The cards already sit in their final overlapping horizontal
+      // layout from the start (see .card--2/.card--3's margin-left in
+      // main.css) — only vertical position and rotation are animated
+      // here, each card rising from fully hidden AND flat (rotation:0)
+      // into its own tilted resting spot (see CARD_REST below). Each
+      // card's reveal now occupies a back-to-back slot (position i * 0.6,
+      // duration 0.6) in a single scrubbed timeline, so card 2's tween
+      // starts the instant card 1's ends — no dead scroll in between
+      // where nothing visibly moves, which used to read as a jarring
+      // pause. A trailing no-op tween pads the timeline with a held
+      // pause after all three have arrived, so scrolling further doesn't
+      // immediately spill into whatever section comes after this one.
 
-  cards.forEach((card, i) => {
-    const cardOffsetInStack = card.getBoundingClientRect().top - cardsStackEl.getBoundingClientRect().top;
-    const hiddenY = window.innerHeight - cardOffsetInStack + 20;
-    gsap.set(card, { y: i === 0 ? hiddenY - FIRST_CARD_PEEK : hiddenY, rotation: 0 });
-  });
+      // Each card needs to start fully below the viewport. The offset
+      // for that has to be computed from the card's position RELATIVE TO
+      // .cards-stack, not card.getBoundingClientRect().top on its own —
+      // .cards-section sits ~200vh down the page (after the hero and
+      // intro-text sections), so at the moment this script runs (page
+      // load, scroll position 0) that raw top value reflects the card
+      // being far below the CURRENT viewport, not its eventual position
+      // once pinned. That previously produced a large NEGATIVE offset —
+      // pushing cards UP near/past their resting spot instead of down
+      // out of view, which is exactly why they were visible immediately
+      // and appeared to slide DOWN into place while scrolling, backwards
+      // from the intended effect. The card's offset relative to
+      // .cards-stack's own top, though, is stable regardless of scroll
+      // position — it's just .cards-row's fixed CSS position (see
+      // main.css) — and once pinned, .cards-stack's top will sit at the
+      // viewport's own top (y:0), so viewport height minus that stable
+      // offset is the correct amount to push each card down by.
+      const cardsStackEl = document.querySelector(".cards-stack");
+      const FIRST_CARD_PEEK = 80; // px of card--1 left showing above the
+                                   // viewport's bottom edge before its own
+                                   // reveal tween starts — same "don't
+                                   // start from a hard blank" idea as the
+                                   // intro arrows' deliberately-placed
+                                   // first arrow
 
-  const cardsTl = gsap.timeline({
-    scrollTrigger: {
-      trigger: ".cards-section",
-      start: "top top",
-      end: "bottom bottom",
-      pin: ".cards-stack",
-      scrub: true, // exact 1:1 tracking (not a laggy number, unlike some
-                    // other scrubs on this site) — precise arrival timing
-                    // matters more here than a smoothed catch-up feel
-    },
-  });
+      // Each card's RESTING state, once it arrives — not just
+      // y:0/rotation:0 for all three anymore. The y values stagger the
+      // row into a slight "staircase" (card 2 sits 16px lower than card
+      // 1, card 3 40px lower — trimmed down from an earlier 24px/96px:
+      // combined with card--3's own 10° tilt, resting that much lower
+      // pushed its rotated bounding box low enough to also risk crossing
+      // the BOTTOM of the viewport on shorter screens, not just its
+      // sides), and the rotation values give each card its own fixed
+      // tilt, both measured from the card's own natural, unrotated
+      // CSS position/size — exactly what gsap.set below with rotation:0
+      // establishes as the starting point, so "0 degrees at rest
+      // off-screen, rotating INTO its tilt as it rises" is literally
+      // what the tween from that start to this end does.
+      const CARD_REST = [
+        { y: 0, rotation: -4 },  // card--1: tilts left 4°
+        { y: 16, rotation: -1 }, // card--2: left 1°, rests 16px lower than card 1
+        { y: 40, rotation: 10 }, // card--3: right 10°, rests 40px lower than card 1
+      ];
 
-  cards.forEach((card, i) => {
-    // power3.out (up from power1.out): a more pronounced deceleration
-    // right as the card reaches its resting spot, so the settle reads as
-    // a deliberate soft landing rather than just gently trailing off.
-    // Positioned at i * 0.6 (0, 0.6, 1.2) instead of i (0, 1, 2) — each
-    // duration:0.6 tween now fills its ENTIRE slot back-to-back, instead
-    // of leaving 0.4 of dead scroll after every arrival before the next
-    // card's tween began.
-    cardsTl.to(card, { ...CARD_REST[i], duration: 0.6, ease: "power3.out" }, i * 0.6);
-  });
+      cards.forEach((card, i) => {
+        const cardOffsetInStack = card.getBoundingClientRect().top - cardsStackEl.getBoundingClientRect().top;
+        const hiddenY = window.innerHeight - cardOffsetInStack + 20;
+        gsap.set(card, { y: i === 0 ? hiddenY - FIRST_CARD_PEEK : hiddenY, rotation: 0 });
+      });
 
-  cardsTl.to({}, { duration: 0.04 }); // trailing hold — just enough to
-  // avoid an instant jump-cut into the next section the moment the third
-  // card lands, not a real pause. scrub maps this section's ENTIRE real
-  // scroll distance (.cards-section is 400vh tall, minus the 100vh
-  // viewport the pin releases at "bottom bottom" = 300vh of actual
-  // scrolling) proportionally onto the timeline's total duration — so a
-  // hold that's, say, 10% of the timeline isn't a small thing, it's ~30vh
-  // of dead scroll. That's what was still "awkward" even after the
-  // previous cut from 1 down to 0.3. At this size (~1.5% of the timeline)
-  // it's only a few vh — barely felt as a pause, not as broken scroll.
+      const cardsTl = gsap.timeline({
+        scrollTrigger: {
+          trigger: ".cards-section",
+          start: "top top",
+          end: "bottom bottom",
+          pin: ".cards-stack",
+          scrub: true, // exact 1:1 tracking (not a laggy number, unlike
+                        // some other scrubs on this site) — precise
+                        // arrival timing matters more here than a
+                        // smoothed catch-up feel
+        },
+      });
+
+      cards.forEach((card, i) => {
+        // power3.out (up from power1.out): a more pronounced deceleration
+        // right as the card reaches its resting spot, so the settle reads
+        // as a deliberate soft landing rather than just gently trailing
+        // off. Positioned at i * 0.6 (0, 0.6, 1.2) instead of i (0, 1, 2)
+        // — each duration:0.6 tween now fills its ENTIRE slot back-to-
+        // back, instead of leaving 0.4 of dead scroll after every arrival
+        // before the next card's tween began.
+        cardsTl.to(card, { ...CARD_REST[i], duration: 0.6, ease: "power3.out" }, i * 0.6);
+      });
+
+      cardsTl.to({}, { duration: 0.04 }); // trailing hold — just enough
+      // to avoid an instant jump-cut into the next section the moment
+      // the third card lands, not a real pause. scrub maps this
+      // section's ENTIRE real scroll distance (.cards-section is 400vh
+      // tall, minus the 100vh viewport the pin releases at "bottom
+      // bottom" = 300vh of actual scrolling) proportionally onto the
+      // timeline's total duration — so a hold that's, say, 10% of the
+      // timeline isn't a small thing, it's ~30vh of dead scroll. That's
+      // what was still "awkward" even after the previous cut from 1 down
+      // to 0.3. At this size (~1.5% of the timeline) it's only a few vh
+      // — barely felt as a pause, not as broken scroll.
+    }
+  );
 }
 
 // -- CONTACTS PHOTOS REVEAL -- //
@@ -1335,10 +1427,14 @@ const videoRect = document.querySelector(".video-rect");
 const videoArrows = gsap.utils.toArray(".video-arrow");
 
 if (videoRect && videoArrows.length === 8) {
-  const FINAL_WIDTH = 600;
-  const FINAL_HEIGHT = (FINAL_WIDTH * 9) / 16; // 337.5 — matches the
-                                                 // 16:9 aspect-ratio set
-                                                 // in main.css
+  // Was hardcoded to 600/337.5, matching .video-rect's old fixed 600px
+  // width — now that it's fluid (width:100%, max-width:600px, main.css),
+  // read its ACTUAL rendered size instead, so the arrows stay positioned
+  // relative to whatever size the box really is (mobile included) instead
+  // of a stale desktop reference that could push them outside the viewport.
+  const videoRectBox = videoRect.getBoundingClientRect();
+  const FINAL_WIDTH = videoRectBox.width;
+  const FINAL_HEIGHT = videoRectBox.height;
   const GAP = 40; // not specified — reasonable breathing room between
                    // the rect's edge and the arrows around it
 

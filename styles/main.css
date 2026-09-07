@@ -16,6 +16,22 @@ html {
   --side-margin: 3rem; /* 48px */
 }
 
+@media (max-width: 768px) {
+  :root {
+    --side-margin: 1rem; /* 16px — was 3rem (48px). Every section below
+                             that reads var(--side-margin) for its side
+                             padding/breakout math (including the negative-
+                             margin edge-to-edge trick on .testimonials-
+                             scroll, which stays correctly matched since it
+                             reads the same variable) picks this up
+                             automatically. A few sections hardcode 3rem
+                             directly instead of using the variable —
+                             .calendar-section/.programs-section/
+                             .video-section each get their own explicit
+                             override alongside this one. */
+  }
+}
+
 /* Only the weights currently in use are registered — Light and Bold exist
    in /fonts too but aren't wired in until something actually needs them. */
 @font-face {
@@ -131,7 +147,13 @@ body {
 
 .navbar-inner {
     display: flex;
-    align-items: top;
+    align-items: center; /* was "top" — not a valid align-items keyword, so
+                              it was silently ignored (falls back to the
+                              default, effectively stretch). This is what
+                              actually centers .navbar-logo/.navbar-actions
+                              on the row's shared horizontal center line —
+                              the docked hero logo (animations.js) matches
+                              itself to this same line via getNavLogoTop(). */
     justify-content: space-between;
     width: 100%;
 }
@@ -147,10 +169,34 @@ body {
                                   animations.js) */
 }
 
-.navbar-logo img {
+.navbar-logo-img {
     display: block;
     height: 2.25rem; /* 32px — the FMK_logo.svg's own intrinsic height */
     width: auto;
+}
+
+.navbar-logo-img--mobile {
+    display: none; /* shown instead of --desktop below 768px — see there */
+}
+
+@media (max-width: 768px) {
+    .navbar {
+        padding: 1.125rem 1rem; /* side padding was var(--side-margin)
+                                    (48px) — 16px here specifically, not a
+                                    change to that shared variable, which
+                                    plenty of other sections still rely on */
+    }
+
+    .navbar-logo-img--desktop {
+        display: none;
+    }
+
+    .navbar-logo-img--mobile {
+        display: block;
+        height: 24px; /* was 18px — also a different SVG (fmk_url_logo.svg)
+                          from the shared rule above (2.25rem/36px), not
+                          just the desktop mark resized */
+    }
 }
 
 .navbar-actions {
@@ -204,6 +250,23 @@ body {
 .navbar--light .nav-button--menu {
     color: #FFFFFF;
     border-color: #FFFFFF;
+}
+
+@media (max-width: 768px) {
+    /* Square icon-only button — was a padding-sized rectangle (label kept
+       via visibility:hidden purely to preserve that footprint, per an
+       earlier instruction). Now the shape is explicit instead, so the
+       label can just be removed from layout outright. */
+    .nav-button--menu {
+        width: 3rem; /* 48px square — not specified; a standard comfortable
+                         tap target around the 18×14 hamburger icon */
+        height: 3rem;
+        padding: 0;
+    }
+
+    .nav-button--menu .nav-button-label {
+        display: none;
+    }
 }
 
 /* Hamburger icon: three bars in a fixed box, morphed into an X by
@@ -303,7 +366,7 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center; /* centers each item as a group */
-    gap: 0rem; /* 32px */
+    gap: 2rem; /* 32px */
 }
 
 .menu-item {
@@ -346,7 +409,20 @@ body {
 
 .menu-social {
     display: flex;
-    gap: 2rem; /* not specified — reusing the same gap as .navbar-actions */
+    gap: 1rem; /* not specified — reusing the same gap as .navbar-actions */
+}
+
+@media (max-width: 768px) {
+    .menu-item a {
+        font-size: 3rem; /* 48px */
+        line-height: 3.5rem; /* 56px */
+    }
+
+    .menu-item .nav-button-label {
+        height: 3.5rem; /* matches the line-height override above — see
+                            the note on the desktop rule for why this has
+                            to track line-height, not the generic 1em */
+    }
 }
 
 .menu-social-link {
@@ -377,6 +453,23 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+@media (max-width: 768px) {
+  .hero {
+    /* Mobile browsers' address/toolbar can show or hide as you scroll,
+       and plain 100vh is sized against the tallest possible case (bar
+       hidden) — meaning at first load, WITH the bar still visible, the
+       hero renders taller than what's actually visible on screen, which
+       is what was pushing .hero-scroll-indicator at the bottom out of
+       view. 100svh ("small" viewport height) is sized against the
+       shortest case instead, so the hero always fits within whatever is
+       actually visible, worst case. Plain 100vh stays first as a fallback
+       for browsers that don't support svh — an unsupported value here is
+       ignored outright, leaving the first (valid) declaration in effect. */
+    height: 100vh;
+    height: 100svh;
+  }
 }
 
 /* "Scroll down" hint, bottom-center of the hero — two overlapping
@@ -537,6 +630,19 @@ body {
   color: #111111; /* not specified — placeholder, matches other body text */
 }
 
+@media (max-width: 768px) {
+  .intro-text-mask {
+    width: 100vw; /* was 65vw — at the much smaller mobile font-size
+                      below, 65vw wrapped far more aggressively than a
+                      narrow phone screen has room to spare for */
+  }
+
+  .intro-text-heading {
+    font-size: 2rem; /* 32px */
+    line-height: 2.5rem; /* 40px */
+  }
+}
+
 /* The real heading — a normal, single text node, left completely alone.
    color:transparent hides it from SIGHT only (unlike opacity/visibility,
    it stays selectable and copyable, and screen readers still read it
@@ -658,6 +764,13 @@ body {
   line-height: 8rem; /* 128px */
   letter-spacing: -0.03em; /* -3%, matching .cards-heading/.card-title */
   color: #EB2837;
+}
+
+@media (max-width: 768px) {
+  .section-headline {
+    font-size: 4rem; /* 64px — was 128px */
+    line-height: 4rem; /* 64px */
+  }
 }
 
 /* -- CARD STACK -- //
@@ -929,6 +1042,134 @@ body {
   width: calc(8 * var(--card-unit)); /* 8px at the 680px reference size */
 }
 
+/* Mobile: the whole pinned/overlapping/rotated stack becomes a plain,
+   normal-flow vertical list instead — no pin, no overlap, no rotation,
+   variable height per card instead of a fixed aspect-ratio. Consolidated
+   into one block here (rather than scattered after each individual rule,
+   the usual convention in this file) since so much of the section's
+   layout mechanism changes at once that keeping it together reads more
+   clearly than a dozen small, disconnected overrides. The corresponding
+   JS changes just as much — an entirely different, un-pinned fade-up-on-
+   scroll reveal per card instead of CARD STACK REVEAL's pin+rotate
+   timeline — gated behind this same 768px breakpoint via
+   gsap.matchMedia(); see CARD STACK REVEAL in animations.js. */
+@media (max-width: 768px) {
+  .cards-section {
+    height: auto; /* was 400vh — that height only ever existed to give
+                      the desktop pin something to scroll through;
+                      nothing is pinned here anymore */
+  }
+
+  .cards-stack {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch; /* was place-items:center (a grid property, but
+                               its align-items component still applies to
+                               this now-flex container too) — that shrank
+                               .cards-heading/.cards-row to their own
+                               content width and centered them, instead of
+                               each filling the row's full width */
+    height: auto;
+    padding: 4rem var(--side-margin); /* not specified — reasonable
+                                           breathing room now that this
+                                           isn't pinned/full-height */
+  }
+
+  .cards-heading {
+    margin: 0 0 3rem; /* not specified — reasonable gap to the cards below */
+    white-space: normal; /* was nowrap — 128px has no room to stay on one
+                              line on a phone screen */
+    font-size: 3rem; /* 48px — was 3.5rem (56px) */
+    line-height: 3rem; /* 48px — was 1.1; now matches font-size 1:1 like
+                            the other mobile headlines (.section-headline) */
+  }
+
+  .cards-row {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch; /* was center (desktop's own row-centering
+                               value) — same shrink-to-content problem as
+                               .cards-stack above, just one level down:
+                               left unset, .card's own width:100% below
+                               would have nothing definite to be 100% OF */
+    gap: 1rem; /* 16px between cards */
+  }
+
+  .card {
+    width: 100%;
+    aspect-ratio: unset; /* height becomes variable/content-driven */
+  }
+
+  .card--2,
+  .card--3 {
+    margin-left: 0; /* cancels the desktop overlap above */
+  }
+
+  .card-content {
+    padding: 1.75rem; /* 28px */
+  }
+
+  .card-title {
+    font-size: 3.5rem; /* 56px */
+    line-height: 1; /* 56px */
+  }
+
+  .card-headline {
+    margin-top: 0.625rem; /* 10px gap from the title above */
+    font-size: 1.75rem; /* 28px */
+    line-height: 2.125rem; /* 34px */
+  }
+
+  .card-footer {
+    flex-direction: column-reverse; /* was a row (button left, text right
+                                         via .card-text's own margin-left:
+                                         auto) — stacks the button BELOW
+                                         the text instead. column-reverse,
+                                         not column: the button is still
+                                         the FIRST element in the markup
+                                         (.card-button's own ::after
+                                         "stretched link" trick needs it
+                                         there), so reversing is what
+                                         flips the VISUAL order without
+                                         needing to touch the HTML */
+    align-items: flex-start; /* was flex-end — left-aligned now that
+                                  button/text stack instead of sitting in
+                                  a row */
+    margin-top: 2.5rem; /* 40px, explicit — was auto (which relied on
+                             .cards-stack's fixed 100vh forcing extra
+                             height into the card for it to push into;
+                             card height is variable/content-driven now,
+                             so there's no longer any spare space for an
+                             auto margin to consume) */
+    gap: 1.5rem; /* 24px — same value as the desktop minimum, just
+                     between stacked items now instead of a row */
+  }
+
+  .card-text {
+    margin: 0; /* was 0 0 0 auto (right-push) — plain left-aligned now */
+    width: 100%; /* was a narrower fixed reference width — text uses the
+                     card's full column now */
+    font-size: 1rem; /* 16px */
+    line-height: 1.5rem; /* 24px */
+  }
+
+  /* Button text/icon/padding switch from --card-unit scaling (which,
+     at how much narrower a mobile card is than the 680px reference,
+     would shrink these to a few cramped px) to the same fixed values
+     .label--button/.label-button-icon already default to everywhere
+     else they're used (e.g. .program-item). Font-size 16px matches
+     .card-text above, per "the same settings" as the small text. */
+  .card-content .label--button {
+    gap: 0.375rem; /* 6px */
+    padding: 0.5rem 0.75rem; /* 8px 12px */
+    font-size: 1rem; /* 16px */
+  }
+
+  .card-content .label-button-icon {
+    width: 0.5rem; /* 8px */
+  }
+}
+
 /* Card 2: everything stays the shared white (title/headline/button
    already are, by default) except the body text, which swaps the
    default pink (#FBD4D7) for white at 70% opacity instead. */
@@ -991,6 +1232,15 @@ body {
                                         side padding is the "48px margin" */
 }
 
+@media (max-width: 768px) {
+  .calendar-section {
+    padding-left: 1rem; /* 16px — was 3rem (48px); hardcoded here rather
+                             than var(--side-margin), so it needs its own
+                             override */
+    padding-right: 1rem;
+  }
+}
+
 .calendar-section-grid {
   display: grid;
   grid-template-columns: repeat(12, 1fr);
@@ -998,18 +1248,23 @@ body {
 }
 
 .calendar-section-headline {
-  grid-column: 1 / 12; /* column 1 through column 11 */
+  grid-column: 2 / 12; /* was 1/12 — starts a column later so its left edge
+                           lines up with .calendar-grid's own 2/12 inset
+                           below, at this same (wide desktop, >1450px)
+                           width. See the max-width:1450px block below for
+                           the matching narrower-viewport override. */
   grid-row: 1;
   align-self: start; /* stay compact/top-aligned in its row, not stretched
                          to fill it (the grid default) */
 }
 
 .calendar-section-intro {
-  grid-column: 1 / 6; /* column 1 through column 5 — same left start as
-                          the headline above, but narrower. Left-aligned
-                          text, but the box itself still reaches all the
-                          way to column 5's right edge instead of
-                          shrinking to the text's own width. */
+  grid-column: 2 / 7; /* was 1/6 — same rightward shift as the headline
+                          above (for the same reason), width unchanged at
+                          5 columns. Left-aligned text, but the box itself
+                          still reaches all the way to column 6's right
+                          edge instead of shrinking to the text's own
+                          width. */
   grid-row: 2;
   margin: -0.25rem 0 0; /* partially cancels .calendar-section-grid's own
                             12px row-gap, leaving a net 8px gap (was fully
@@ -1044,6 +1299,18 @@ body {
   .calendar-grid {
     grid-column: 1 / -1;
   }
+
+  /* .calendar-grid loses its 2/12 inset (above) at this width, so the
+     headline/intro's own matching shift to column 2 (base rules above)
+     would otherwise leave them mismatched again — back to column 1 here
+     to stay flush with .calendar-grid's own left edge. */
+  .calendar-section-headline {
+    grid-column: 2 / 12;
+  }
+
+  .calendar-section-intro {
+    grid-column: 1 / 6;
+  }
 }
 
 .calendar-event {
@@ -1061,6 +1328,19 @@ body {
 @media (max-width: 1000px) {
   .calendar-event {
     grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 768px) {
+  .calendar-section-intro {
+    grid-column: 1 / -1; /* was 1/6 (5 of 12 cols) — "100vw": full width of
+                             the row instead of a narrow column, same
+                             full-width pattern .calendar-grid already uses
+                             above at 1450px */
+  }
+
+  .calendar-grid {
+    margin-top: 4rem; /* 64px — was 6rem (96px) */
   }
 }
 
@@ -1085,6 +1365,19 @@ body {
   white-space: nowrap;
 }
 
+@media (max-width: 768px) {
+  .calendar-event-day,
+  .calendar-event-month {
+    font-size: 1.125rem; /* 18px — was 1.25rem (20px); joins the "smaller
+                             texts" tier with .calendar-event-location,
+                             which was already 1.125rem */
+  }
+
+  /* .calendar-event-number no longer needs its own override here — it's
+     2rem at every viewport now (base rule below), same "biggest texts"
+     tier as .calendar-event-headline. */
+}
+
 .calendar-event-day {
   margin-bottom: 0.375rem; /* 6px gap to the number below it */
 }
@@ -1095,9 +1388,9 @@ body {
   font-weight: 600; /* not specified — Semibold, matching the "big
                         number" treatment used elsewhere on the site
                         (e.g. the hero-to-nav docked logo's neighbors) */
-  font-size: 2.5rem; /* not specified — sized to stand out as the card's
-                         focal number, distinct from the smaller day/month
-                         labels around it */
+  font-size: 2rem; /* 32px — was 2.5rem; sized to stand out as the card's
+                        focal number, distinct from the smaller day/month
+                        labels around it */
   line-height: 1;
   color: #FFFFFF;
   font-variant-numeric: lining-nums; /* tall/lining figures, not the
@@ -1191,7 +1484,7 @@ body {
 /* Same treatment/position as .calendar-section-headline (grid-column
    1/12, top-aligned) — just no second row for a subheadline underneath. */
 .contacts-section-headline {
-  grid-column: 1 / 12;
+  grid-column: 2 / 12;
   align-self: start;
 }
 
@@ -1361,6 +1654,28 @@ body {
   color: #111111; /* via currentColor, matches the text next to it */
 }
 
+@media (max-width: 768px) {
+  /* 1 per row, "100vw": a plain vertical stack instead of the 3-column
+     grid (each item's own grid-column/justify-self above becomes a no-op
+     once the parent isn't a grid; only the width overrides below still
+     apply and actually matter here). */
+  .contacts-photos {
+    display: flex;
+    flex-direction: column;
+    gap: 3rem; /* 48px — not specified, reasonable breathing room between
+                   each stacked person */
+  }
+
+  .contact-person {
+    width: 100%; /* was 80% — full width now that only one sits per row */
+  }
+
+  .contact-person--2 {
+    width: 100%; /* was a calc() sized to center among 3 columns — no
+                     longer relevant with one person per row */
+  }
+}
+
 /* -- PROGRAMS SECTION -- //
    Same 12-column grid technique as .calendar-grid — each item spans 4 of
    the 12 columns, so exactly 3 sit per row. The button inside reuses
@@ -1382,6 +1697,15 @@ body {
   padding: 10rem 3rem var(--side-margin); /* 48px top — was 20rem (320px);
                                         side/bottom already matched the
                                         standard --side-margin (48px) */
+}
+
+@media (max-width: 768px) {
+  .programs-section {
+    padding-left: 1rem; /* 16px — was 3rem (48px); hardcoded here rather
+                             than var(--side-margin), so it needs its own
+                             override */
+    padding-right: 1rem;
+  }
 }
 
 .programs-headline {
@@ -1482,6 +1806,12 @@ body {
 .program-item .label--button:hover {
   background-color: #111111;
   color: #FFFFFF;
+}
+
+@media (max-width: 768px) {
+  .program-item {
+    grid-column: 1 / -1; /* was span 4 (3 per row) — full width, 1 per row */
+  }
 }
 
 /* -- TESTIMONIALS SECTION -- //
@@ -1753,10 +2083,23 @@ body {
                              between this and .cards-section above it */
 }
 
+@media (max-width: 768px) {
+  .video-section {
+    padding-left: 1rem; /* 16px — was 3rem (48px); hardcoded here rather
+                             than var(--side-margin), so it needs its own
+                             override */
+    padding-right: 1rem;
+  }
+}
+
 .video-rect {
   position: relative; /* anchors .video-arrow's absolute positioning to
                           this box, not some unrelated ancestor */
-  width: 600px;
+  width: 100%;
+  max-width: 600px; /* was a fixed 600px — fluid now so it (and the 8
+                         arrows around it, positioned in animations.js
+                         relative to its OWN rendered size) shrinks to fit
+                         narrow viewports instead of overflowing past them */
   aspect-ratio: 16 / 9;
   /* No border-radius/overflow:hidden here — the 8 arrows are deliberately
      positioned OUTSIDE this box (see the GAP math in VIDEO ARROWS REVEAL
@@ -1852,6 +2195,14 @@ body {
   grid-column: 4 / 10;
   display: flex;
   flex-direction: column;
+}
+
+@media (max-width: 768px) {
+  .contact-form-headline,
+  .contact-form {
+    grid-column: 1 / -1; /* was 4/10 (6 of 12, centered) — full viewport
+                             width (within the section's own side padding) */
+  }
 }
 
 .contact-form-fields {
@@ -1960,8 +2311,8 @@ body {
   margin-top: 2rem; /* 32px gap from the checkbox row above */
   width: 100%;
   padding: 1.5rem 3.5rem; /* 24px 56px, matching .footer-social-button */
-  font-size: 3.5rem; /* 56px */
-  line-height: 3.5rem; /* 56px */
+  font-size: 2.5rem; /* 40px — was 3.5rem (56px) */
+  line-height: 2.5rem; /* 40px */
 }
 
 /* -- FOOTER -- //
@@ -2058,6 +2409,13 @@ body {
                       matching the rest of the footer's text */
 }
 
+@media (max-width: 768px) {
+  .footer-mission-text {
+    grid-column: 1 / -1; /* was span 5 (of .footer-mission's own 8) — full
+                             width, phone only */
+  }
+}
+
 /* .menu-divider used to also be used by the menu overlay itself (a
    divider between the nav list and the social icons) — that's gone now
    that the overlay's own spacing handles that separation (see
@@ -2093,16 +2451,17 @@ body {
                              <button> elements, which don't need this;
                              these are <a> tags, which get the browser's
                              default underline unless reset */
-  font-size: 3.5rem; /* 56px — overrides .nav-button's own 20px; cascades
-                         down to .nav-button-label's height:1em too, so
-                         its mask still exactly fits one line at this
-                         larger size with no extra changes needed */
-  line-height: 3.5rem; /* 56px */
+  font-size: 2.5rem; /* 40px — was 3.5rem (56px); overrides .nav-button's
+                         own 20px; cascades down to .nav-button-label's
+                         height:1em too, so its mask still exactly fits
+                         one line at this size with no extra changes needed */
+  line-height: 2.5rem; /* 40px */
 }
 
 .footer-social-icon {
-  width: 20px;
-  height: 20px;
+  width: 14px; /* was 20px — scaled down proportionally with the button's
+                   own font-size drop (40/56, ≈0.71×) */
+  height: 14px;
   flex-shrink: 0;
   color: #FFFFFF;
 }
@@ -2141,5 +2500,34 @@ body {
   color: #FFFFFF;
   text-decoration: underline; /* permanently on for both links — not
                                   something animated on hover here */
+}
+
+@media (max-width: 768px) {
+  /* .footer-logo-arrow (col 1) and .footer-content (cols 5/-1) sit side
+     by side on desktop's grid — stacked instead here, full width. A
+     column flex container's default align-items:stretch is what makes
+     .footer-content reach the full row width on its own; the arrow keeps
+     its own explicit 48px width instead of stretching too. */
+  .footer-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 2.5rem; /* not specified — reasonable gap between the arrow and
+                     the content below it */
+  }
+
+  /* The two "cookie/legal" text groups (links, notice), and the two
+     links inside the first group, all stack vertically instead of
+     sitting in a row. */
+  .footer-legal {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1.5rem; /* not specified — reasonable stacking gap */
+  }
+
+  .footer-legal-links {
+    flex-direction: column;
+    gap: 1rem; /* not specified — reasonable stacking gap, smaller than
+                   the 64px side-by-side gap now that it's vertical */
+  }
 }
 
