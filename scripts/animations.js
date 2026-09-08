@@ -1188,14 +1188,30 @@ gsap.utils.toArray(".calendar-event").forEach((event, i) => {
 //(content-driven) height, measured before anything is fixed — a card
 //that already had an explicit height set couldn't tell you what its own
 //natural height should be, same reasoning as CONTACTS ACCORDION above.
+//
+//Wrapped in a function and re-run on window "load" and on resize, not
+//just once at initial script execution — run that early (synchronously,
+//right as the DOM parses), the "Katarine" web font hasn't necessarily
+//swapped in yet; the fallback font's different metrics can wrap
+//.testimonial-quote into fewer lines than the real font eventually
+//needs, understating "tallest" — once the real font lands, that card's
+//real content overflows the now-stale fixed height, clipping the text.
+//Resets every card to "auto" first, since an already-fixed height can't
+//report its own true content height back via offsetHeight.
 const testimonialItems = gsap.utils.toArray(".testimonial-item");
 
-if (testimonialItems.length) {
+function syncTestimonialCardHeight() {
+  if (!testimonialItems.length) return;
+  testimonialItems.forEach((item) => { item.style.height = "auto"; });
   const tallestTestimonialHeight = Math.max(...testimonialItems.map((item) => item.offsetHeight));
   testimonialItems.forEach((item) => {
     item.style.height = tallestTestimonialHeight + "px";
   });
 }
+
+syncTestimonialCardHeight();
+window.addEventListener("load", syncTestimonialCardHeight);
+window.addEventListener("resize", syncTestimonialCardHeight);
 
 // -- TESTIMONIALS DRAG SCROLL -- //
 //.testimonials-track is dragged horizontally inside the .testimonials-

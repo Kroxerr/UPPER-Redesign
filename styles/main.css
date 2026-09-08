@@ -589,6 +589,14 @@ body {
 .intro-arrow--md { width: 1.875rem; } /* 30px */
 .intro-arrow--sm { width: 0.875rem; } /* 14px — slowest tier */
 
+@media (max-width: 768px) {
+  /* ~50% smaller — too big relative to .intro-text-heading's own much
+     smaller mobile size (32px, was 96px) otherwise. */
+  .intro-arrow--lg { width: 1.5rem; }    /* 24px — was 3rem (48px) */
+  .intro-arrow--md { width: 0.9375rem; } /* 15px — was 1.875rem (30px) */
+  .intro-arrow--sm { width: 0.4375rem; } /* 7px — was 0.875rem (14px) */
+}
+
 .intro-text-mask {
   position: relative; /* anchors the decorative text overlay below, and
                           (with z-index) keeps this stacked above
@@ -632,14 +640,14 @@ body {
 
 @media (max-width: 768px) {
   .intro-text-mask {
-    width: 100vw; /* was 65vw — at the much smaller mobile font-size
-                      below, 65vw wrapped far more aggressively than a
-                      narrow phone screen has room to spare for */
+    width: calc(100vw - 32px); /* was 100vw (edge-to-edge, no side
+                                    margin) — 16px margin on each side,
+                                    matching the sitewide mobile margin */
   }
 
   .intro-text-heading {
-    font-size: 2rem; /* 32px */
-    line-height: 2.5rem; /* 40px */
+    font-size: 2.5rem; /* 40px — was 2rem (32px) */
+    line-height: 3rem; /* 48px — was 2.5rem (40px) */
   }
 }
 
@@ -1106,7 +1114,7 @@ body {
   }
 
   .card-content {
-    padding: 1.75rem; /* 28px */
+    padding: 1.75rem 1.75rem 2rem 1.75rem; /* 28px */
   }
 
   .card-title {
@@ -1238,6 +1246,9 @@ body {
                              than var(--side-margin), so it needs its own
                              override */
     padding-right: 1rem;
+    padding-top: 5rem; /* 80px — was 20rem (320px), way oversized for a
+                            phone screen */
+    padding-bottom: 4rem; /* 64px — was 16rem (256px) */
   }
 }
 
@@ -1305,7 +1316,7 @@ body {
      would otherwise leave them mismatched again — back to column 1 here
      to stay flush with .calendar-grid's own left edge. */
   .calendar-section-headline {
-    grid-column: 2 / 12;
+    grid-column: 1 / 12;
   }
 
   .calendar-section-intro {
@@ -1348,7 +1359,7 @@ body {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  justify-content: center;
+  justify-content: top;
   flex-shrink: 0;
   padding: 1rem 1.5rem; /* 16px 24px */
   background-color: #EB2837;
@@ -1379,11 +1390,11 @@ body {
 }
 
 .calendar-event-day {
-  margin-bottom: 0.375rem; /* 6px gap to the number below it */
+  margin-bottom: 0.25rem; /* 6px gap to the number below it */
 }
 
 .calendar-event-number {
-  margin-bottom: 0.75rem; /* 12px gap to the month below it */
+  margin-bottom: 0.5rem; /* 12px gap to the month below it */
   font-family: "Katarine", Arial, Helvetica, sans-serif;
   font-weight: 600; /* not specified — Semibold, matching the "big
                         number" treatment used elsewhere on the site
@@ -1475,6 +1486,13 @@ body {
   padding: 8rem var(--side-margin) 6rem;
 }
 
+@media (max-width: 768px) {
+  .contacts-section {
+    padding-top: 4rem; /* 64px — was 8rem (128px) */
+    padding-bottom: 4rem; /* 64px — was 6rem (96px) */
+  }
+}
+
 .contacts-section-grid {
   display: grid;
   grid-template-columns: repeat(12, 1fr);
@@ -1486,6 +1504,15 @@ body {
 .contacts-section-headline {
   grid-column: 2 / 12;
   align-self: start;
+}
+
+@media (max-width: 768px) {
+  .contacts-section-headline {
+    grid-column: 1 / -1; /* was 2/12 (desktop) — column 1 to the last
+                             column ("position 1 to max") on mobile. Font
+                             size is already 4rem here via .section-
+                             headline's own mobile rule. */
+  }
 }
 
 .contacts-photos {
@@ -1655,24 +1682,62 @@ body {
 }
 
 @media (max-width: 768px) {
-  /* 1 per row, "100vw": a plain vertical stack instead of the 3-column
-     grid (each item's own grid-column/justify-self above becomes a no-op
-     once the parent isn't a grid; only the width overrides below still
-     apply and actually matter here). */
+  /* 2 per row now (was 1 per row/flex column) — a plain 2-column grid.
+     With 3 people, the 3rd just falls into row 2 on its own, left-aligned
+     like a normal grid item, rather than the desktop centered-in-the-
+     full-row treatment (.contact-person--2 below resets that). */
   .contacts-photos {
-    display: flex;
-    flex-direction: column;
-    gap: 3rem; /* 48px — not specified, reasonable breathing room between
-                   each stacked person */
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    column-gap: 1rem; /* 16px, between the two images/columns */
+    row-gap: 1.5rem; /* 24px, between rows */
   }
 
   .contact-person {
-    width: 100%; /* was 80% — full width now that only one sits per row */
+    grid-row: auto; /* was 1 (desktop pins all 3 to one row so item 2 can
+                        overlap items 1/3's row via its own full-span grid
+                        area) — auto lets item 3 fall to row 2 naturally */
+    width: 100%; /* was 80% — fills its own grid cell */
+  }
+
+  /* .contact-person--1/--3's desktop grid-column (2/5, 9/12) referenced
+     line numbers past the 2 explicit columns set above, which forces
+     CSS Grid to auto-generate extra implicit columns to fit them —
+     that's what was still showing all 3 side by side instead of
+     wrapping into 2 columns/2 rows. Reset to auto so all three just
+     flow through the 2-column grid normally. */
+  .contact-person--1,
+  .contact-person--3 {
+    grid-column: auto;
+  }
+
+  .contact-person--3 {
+    justify-self: stretch; /* was end (desktop's right-edge pin) */
   }
 
   .contact-person--2 {
-    width: 100%; /* was a calc() sized to center among 3 columns — no
-                     longer relevant with one person per row */
+    grid-column: auto; /* was 1/-1 (desktop's full-row centering) */
+    justify-self: stretch; /* was center */
+    width: 100%; /* was a calc() sized for the desktop centered layout */
+  }
+
+  .contact-person-name {
+    font-size: 1.5rem; /* 24px — was 2rem (32px) */
+    line-height: 2rem; /* 32px — was 2.5rem (40px) */
+  }
+
+  .contact-person-role {
+    font-size: 1.125rem; /* 18px — was 1.25rem (20px) */
+    line-height: 1.5rem; /* 24px — was 1.625rem (26px) */
+  }
+
+  .contact-person-detail {
+    align-items: flex-start; /* was center — keeps the icon pinned to the
+                                  first line instead of the whole block's
+                                  vertical center once the text wraps to
+                                  2+ lines on a narrow card */
+    font-size: 1rem; /* 16px — was 1.25rem (20px) */
+    line-height: 1.25rem; /* 20px — was 1.625rem (26px) */
   }
 }
 
@@ -1705,12 +1770,20 @@ body {
                              than var(--side-margin), so it needs its own
                              override */
     padding-right: 1rem;
+    padding-top: 4rem; /* 64px — was 10rem (160px); bottom already 16px
+                            via --side-margin, not touched */
   }
 }
 
 .programs-headline {
   align-self: flex-start;
   margin-bottom: 8rem; /* 96px gap to .programs-grid below */
+}
+
+@media (max-width: 768px) {
+  .programs-headline {
+    margin-bottom: 4rem; /* 64px — was 8rem (96px) */
+  }
 }
 
 .programs-grid {
@@ -1861,6 +1934,14 @@ body {
                            impossible instead of just unlikely. */
 }
 
+@media (max-width: 768px) {
+  .testimonials-section {
+    padding-top: 3rem; /* 48px — was 8rem (128px); the biggest cut of this
+                            pass, per "especially testimonials" */
+    padding-bottom: 4rem; /* 64px — was 6rem (96px) */
+  }
+}
+
 .testimonials-section-grid {
   display: grid;
   grid-template-columns: repeat(12, 1fr);
@@ -1988,6 +2069,19 @@ body {
   opacity: .7; /* unchanged */
 }
 
+@media (max-width: 768px) {
+  .testimonial-item {
+    width: 90vw; /* was a fixed 516px — too wide for a phone screen */
+    padding: 1.5rem; /* 24px — was 2rem (32px) */
+  }
+
+  .testimonial-quote {
+    margin-top: 2rem; /* 32px — was 3rem (48px), gap from the name above */
+    font-size: 1rem; /* 16px — was 1.125rem (18px) */
+    line-height: 1.25rem; /* 20px — was 1.5rem (24px) */
+  }
+}
+
 /* -- GALLERY WHEEL SECTION -- //
    15 photos stream from the bottom of the viewport to the top, scaling
    0% -> 100% -> 0% as they pass through the vertical middle — like
@@ -2108,6 +2202,19 @@ body {
      own corners moved onto .video-embed itself below instead. */
 }
 
+@media (max-width: 768px) {
+  .video-rect {
+    /* The arrows sit at (this box's own half-width + a fixed 40px GAP +
+       their own 20px/half=10px) from center (animations.js, VIDEO ARROWS
+       REVEAL) — for that to stay inside the viewport: width/2 + 50 ≤
+       viewport/2, i.e. width ≤ viewport − 100px. At 90vw that only holds
+       above a ~1000px-wide viewport, nowhere close to an actual phone —
+       which is why they were still clipped. 65vw clears the 100px budget
+       with room to spare down to a 320px-wide phone. */
+    width: 65vw; /* was 90vw */
+  }
+}
+
 .video-embed {
   display: block;
   width: 100%;
@@ -2171,6 +2278,13 @@ body {
                                         48px page margin */
 }
 
+@media (max-width: 768px) {
+  .contact-form-section {
+    padding-top: 4rem; /* 64px — was 6rem (96px) */
+    padding-bottom: 4rem; /* 64px */
+  }
+}
+
 .contact-form-grid {
   display: grid;
   grid-template-columns: repeat(12, 1fr);
@@ -2203,6 +2317,11 @@ body {
     grid-column: 1 / -1; /* was 4/10 (6 of 12, centered) — full viewport
                              width (within the section's own side padding) */
   }
+
+  .contact-form-headline {
+    font-size: 4rem; /* 64px — was 6rem (96px) */
+    line-height: 4rem; /* 64px */
+  }
 }
 
 .contact-form-fields {
@@ -2229,6 +2348,15 @@ body {
 .contact-form-input::placeholder {
   color: rgba(17, 17, 17, 0.4); /* #111111 @ 40% — matches the resting
                                     "Email"/"Vaše zpráva" hint text */
+}
+
+@media (max-width: 768px) {
+  .contact-form-input {
+    padding: 1.25rem 1.375rem; /* 20px top/bottom, 22px sides — was 1.5rem
+                                    (24px) all around */
+    font-size: 1.25rem; /* 20px — was 1.5rem (24px) */
+    line-height: 1.5rem; /* 24px — was 2rem (32px) */
+  }
 }
 
 .contact-form-textarea {
@@ -2456,6 +2584,17 @@ body {
                          height:1em too, so its mask still exactly fits
                          one line at this size with no extra changes needed */
   line-height: 2.5rem; /* 40px */
+}
+
+@media (max-width: 768px) {
+  .footer-social {
+    gap: 1rem; /* 16px — was 2rem (32px) */
+  }
+
+  .footer-social-button {
+    padding-left: 2rem; /* 32px — was 3.5rem (56px) */
+    padding-right: 2rem;
+  }
 }
 
 .footer-social-icon {
