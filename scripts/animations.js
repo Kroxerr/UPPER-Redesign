@@ -1114,8 +1114,8 @@ if (cards.length) {
       if (context.conditions.isMobile) {
         // Mobile: no pin, no overlap, no rotation. Each card just fades
         // up into place as it individually scrolls into view — same
-        // "top 80%"/once:true pattern as PROGRAMS SECTION REVEAL/
-        // CALENDAR EVENT REVEAL elsewhere in this file.
+        // "top 80%"/once:true pattern as PROGRAMS SECTION REVEAL
+        // elsewhere in this file.
         cards.forEach((card) => {
           gsap.set(card, { y: 60, opacity: 0 });
           gsap.to(card, {
@@ -1308,8 +1308,8 @@ if (cards.length) {
 // -- CONTACTS PHOTOS REVEAL -- //
 //Each of the 3 photo+text items slides up and fades in as the row
 //scrolls into view — same "top 80%"/once:true pattern as PROGRAMS
-//SECTION REVEAL and CALENDAR EVENT REVEAL above (plays once, never
-//resets on scrolling back up), but a single shared trigger (the row
+//SECTION REVEAL above (plays once, never resets on scrolling back up),
+//but a single shared trigger (the row
 //itself) with a stagger, not one trigger per item — the row is short
 //enough that all 3 cross "top 80%" together anyway, so separate triggers
 //would just fire back to back with no real scroll distance between them.
@@ -1392,11 +1392,10 @@ gsap.utils.toArray(".program-item").forEach((item, i) => {
 //Applied to the whole element (image/text/button together), not to an
 //inner piece: .program-image already has its own scale tween from PROGRAMS
 //SECTION REVEAL, and the desktop .card already has y/rotation driven by
-//CARD STACK REVEAL and .calendar-event's y/autoAlpha by CALENDAR EVENT
-//REVEAL — GSAP composes scale with those without conflict since they're
-//different properties, but a second scale on the same element as an
-//existing scale tween would fight it. (The overlapping desktop cards are
-//meant to overlap; this just nudges the hovered one.)
+//CARD STACK REVEAL — GSAP composes scale with those without conflict
+//since they're different properties, but a second scale on the same
+//element as an existing scale tween would fight it. (The overlapping
+//desktop cards are meant to overlap; this just nudges the hovered one.)
 //
 //Deliberately self-contained and tentative — delete this whole section
 //(nothing else depends on it) to remove the effect everywhere, or remove a
@@ -1422,31 +1421,11 @@ if (window.matchMedia("(hover: hover)").matches) {
   });
 }
 
-// -- CALENDAR EVENT REVEAL -- //
-//Each event card slides up AND fades in from 0 opacity into place as it
-//individually scrolls into view — same "top 80%"/once:true pattern as
-//PROGRAMS SECTION REVEAL above: its own trigger per card, plays once,
-//never resets on scrolling back up.
-//
-//Cards stack one per row within their month now (.calendar-month-events,
-//see main.css) instead of sitting two per row — no more left/right pairs
-//to stagger apart, so each card's own scroll-position trigger (16px below
-//the one above it) is what naturally spaces their reveals out instead.
-gsap.utils.toArray(".calendar-event").forEach((event) => {
-  gsap.set(event, { y: 60, autoAlpha: 0 });
-
-  gsap.to(event, {
-    y: 0,
-    autoAlpha: 1,
-    duration: 0.8,
-    ease: "power3.out",
-    scrollTrigger: {
-      trigger: event,
-      start: "top 80%",
-      once: true,
-    },
-  });
-});
+// Calendar events used to have their own CALENDAR EVENT REVEAL here (slide
+// up + fade in on scroll, same "top 80%"/once:true pattern as PROGRAMS
+// SECTION REVEAL) — removed by request, so they now just render normally
+// with the page, no animation. HOVER_ENLARGE_SELECTORS above still covers
+// .calendar-event for its own separate hover effect, unrelated to this.
 
 // -- TESTIMONIALS CARD HEIGHT -- //
 //Removed: cards used to all share the tallest card's height (measured via
@@ -1760,9 +1739,8 @@ if (videoRect && videoArrows.length === 8) {
   });
 
   // "top 80%, once:true" — the same reveal-on-scroll pattern as MISSION
-  // SECTION REVEAL / PROGRAMS SECTION REVEAL / CALENDAR EVENT REVEAL
-  // elsewhere in this file: plays the one time this scrolls into view,
-  // no pin or scrub involved.
+  // SECTION REVEAL / PROGRAMS SECTION REVEAL elsewhere in this file:
+  // plays the one time this scrolls into view, no pin or scrub involved.
   gsap.to(videoArrowIcons, {
     yPercent: 0,
     duration: 1,
