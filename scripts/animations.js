@@ -1,9 +1,9 @@
 // Browsers try to restore the previous scroll position on a plain reload
 // (and on back/forward navigation) by default — left alone, that fights
 // everything below, which assumes a refresh always starts at the very
-// top: the intro reveal locks scroll and plays every time regardless of
-// where the page was left, and HERO-TO-NAV's own math is all relative to
-// scroll position 0. "manual" opts out of that native restoration
+// top: the intro sequence locks scroll and plays every time regardless of
+// where the page was left, and the hero logo's start position is measured
+// as if the page were at scroll position 0. "manual" opts out of that native restoration
 // entirely, and the explicit scrollTo(0,0) below covers the page having
 // already been rendered scrolled-down for an instant before this script
 // got a chance to run.
@@ -81,7 +81,7 @@ if (contextCursor && contextCursorText && window.matchMedia("(hover: hover)").ma
 
   // Re-checks what's actually under the cursor, instead of relying only
   // on mouseenter/mouseleave firing on each trigger element. With many
-  // small, tightly-packed triggers (like the calendar cards, 12px
+  // small, tightly-packed triggers (like the calendar cards, 16px
   // apart), fast mouse movement can skip past an element fast enough
   // that its mouseleave never fires — leaving the label stuck open even
   // once the cursor is well outside it. This check can't get stuck the
@@ -159,8 +159,8 @@ if (contextCursor && contextCursorText && window.matchMedia("(hover: hover)").ma
 
 // -- SMOOTH SCROLL SETUP -- //
 //Turns raw wheel/touch input into eased, lagged scrolling for the whole
-//page. Starts paused so the user can't scroll mid-reveal; the reveal
-//timeline's onComplete (below) releases it.
+//page. Starts paused so the user can't scroll mid-intro; the INTRO
+//SEQUENCE (below) releases it as its scroll-down hint appears.
 //
 //`smooth` bumped from .5 to 1.1 to read closer to tech-recruit.com's
 //scroll — that site runs on Lenis, a different library with its own
@@ -183,12 +183,14 @@ smoother.scrollTo(0, false); // belt-and-suspenders alongside the
                                // starts at 0 too, not just the browser's
 smoother.paused(true);
 let introDone = false; // guards against the menu (below) unpausing scroll
-                        // if it's somehow closed before the intro reveal
+                        // if it's somehow closed before the intro sequence
                         // itself has finished and legitimately unpaused it
 
 // -- LOGO REVEAL ANIMATION -- //
 //Plays once on load: each shape slides up from behind its own clip-path
-//mask, left-to-right pairs revealing from the center outward.
+//mask, left-to-right pairs revealing from the center outward. Its
+//completion is what kicks off everything else in the intro — see INTRO
+//SEQUENCE below.
 const SHAPE_OFFSETS = {
   "shape-1": 379,
   "shape-2": 254,
@@ -208,41 +210,60 @@ gsap.set(shapeEls, {
   y: (i) => SHAPE_OFFSETS[shapeIds[i]],
 });
 
-const tl = gsap.timeline({
+const logoRevealTl = gsap.timeline({
   defaults: {
-    duration: 1.3, // was 1.8 — sped back up by .5s
-    ease: CustomEase.create("custom", "M0,0 C0,0 0,0 0,0 0,0.07 0,0 0,0 0,0.083 0,0 0,0 0,0.104 0,0 0,0 0,0.143 0.085,0.937 0.315,1.01 0.468,1.058 0.541,0.964 0.68,0.964 0.775,0.964 0.864,1 1,1 1.059,1 1,1 1,1 "),
+    duration: .8, // was 1.8 — sped back up by .5s
+    // Plain ease-out, no overshoot. Was a custom bezier that shot past its
+    // target (~5.8% over) and settled back, which read as a bounce; that
+    // curve was also punchier than any preset — it was ~65% done after the
+    // first tenth of the duration. power4.out is the closest bounce-free
+    // preset in the same spirit (~41% at the same point); "expo.out"
+    // (~50%) would be even sharper, "power3.out" (~34%) softer.
+    ease: "power4.out",
   },
-  onComplete: () => {
-    // Reveal is done — hand control of the page back to the user.
-    introDone = true;
-    smoother.paused(false);
-  },
+  onComplete: () => playIntroSequence(),
 });
 
 // 4 -> (3,5) -> (2,6) -> (1,7)
-tl.to("#shape-4", { y: 0 }, .1)
+logoRevealTl.to("#shape-4", { y: 0 }, .1)
   .to(["#shape-3", "#shape-5"], { y: 0 }, 0.2)
   .to(["#shape-2", "#shape-6"], { y: 0 }, 0.25)
   .to(["#shape-1", "#shape-7"], { y: 0 }, 0.35);
 
-// -- SCROLL ANIMATION FROM LOGO TO NAV -- //
+// -- INTRO EASE -- //
+//ONE curve shared by everything that moves during the intro sequence
+//(INTRO SEQUENCE below): the logo's rise AND shrink, the heading's letters
+//sliding up, and the arrows rising. Sharing it is what makes the pieces
+//read as a single motion instead of three separate animations that merely
+//start at similar times — and it means there's one place to tune the feel.
+//
+//cubic-bezier(.42, 0, .3, 1), written in GSAP's CustomEase path syntax
+//("M0,0 C x1,y1 x2,y2 1,1" — the same four numbers as the CSS version).
+//Deliberately balanced rather than extreme: a gentle ease-in that gets
+//moving early (10% of the distance by 20% of the time — the previous
+//logo curves took ~30% of their duration to get there), a moderate peak
+//(about 2.3x average speed, vs ~2.8x for the old rise and ~5.8x for the old
+//shrink) and a long soft landing. Steeper = snappier/more dramatic,
+//flatter = more even.
+const introEase = CustomEase.create("intro", "M0,0 C0.42,0 0.3,1 1,1");
+
+// -- HERO LOGO TO NAV -- //
 //Everything below animates the logo from its big centered hero position
-//into its docked spot (32px tall, 18px from the top), tracking scroll
-//progress from 0 to 50vh. The logo doesn't need to physically live inside
+//into its docked spot in the nav — a timed tween the INTRO SEQUENCE (below)
+//starts the instant the logo reveal above finishes, NOT scroll-driven
+//anymore. The logo doesn't need to physically live inside
 //.navbar — it just needs to end up looking aligned with it — so instead
 //of reparenting it into the nav, this measures its natural on-screen rect
-//once (while still laid out normally, centered in .hero), then treats it
+//(while still laid out normally, centered in .hero), then treats it
 //as an independent fixed overlay from that point on: only `scale` and `y`
 //are animated (cheap, transform-only, no layout thrashing), interpolating
 //from "big, at its natural spot" down to "docked". Horizontal centering
 //is handled by a constant xPercent:-50, never tweened, so it can't drift
 //off-center mid-transition.
 // A function, not a constant — needs to reflect whichever viewport width
-// is CURRENT each time it's read (both here at setup and again inside
-// heroToNavTl's own function-based fromTo values further down, which
-// already re-evaluate on every ScrollTrigger refresh/resize), not just
-// whatever width happened to be active the moment this script first ran.
+// is CURRENT each time it's read (at setup, on resize, and again when the
+// dock tween is built), not just whatever width happened to be active the
+// moment this script first ran.
 const getNavLogoHeight = () => (window.innerWidth <= 768 ? 28 : 40);
 // Was a flat constant (18) — now measures .navbar-inner's own live vertical
 // center (post align-items:center fix, main.css) and returns whatever
@@ -304,106 +325,77 @@ gsap.set(heroLogo, {
   y: heroLogoStartRect.top - getNavLogoTop(),
 });
 
-// Keeps the docked "top" in sync with the navbar's own live center — the
-// gsap.set above only runs once, synchronously, before web fonts have
-// necessarily swapped in (which can shift .navbar-inner's own height by a
-// couple px) and invalidateOnRefresh below only re-measures the
-// function-based fromTo values, not this base "top". Re-synced on resize
-// (e.g. crossing the 768px breakpoint, or the menu button's square size
-// otherwise changing the row's height) and once more on window "load" —
-// same rationale as REFRESH AFTER FULL LOAD further down.
-const syncNavLogoTop = () => gsap.set(heroLogo, { top: getNavLogoTop() });
-window.addEventListener("resize", syncNavLogoTop);
-window.addEventListener("load", syncNavLogoTop);
+// Set once the dock tween below has been built (i.e. the logo has started
+// its rise) — until then, a resize also has to re-measure the logo's big
+// resting scale/y, since the tween hasn't captured them yet.
+let heroLogoDockStarted = false;
 
-// Two distinct eases so scale and position each get their own bezier
-// "character" instead of both moving in lockstep — equivalent to CSS
-// cubic-bezier() curves, just written in GSAP's CustomEase path syntax
-// (the two C control points are the same numbers either way).
-const heroToNavMoveEase = CustomEase.create(
-  "heroToNavMove",
-  "M0,0 C0,0.532 0.471,0.705 1,1" // cubic-bezier(.65,0,.35,1) — smooth ease-in-out
-);
-const heroToNavScaleEase = CustomEase.create(
-  "heroToNavScale",
-  "M0,0 C0,0.208 0.24,1 1,1" // cubic-bezier(.83,0,.17,1) — slower start/end,
-                             // a sharper snap through the middle than the
-                             // move ease, so the shrink reads distinctly
-                             // from the rise instead of feeling rubbery
-);
+// Keeps the docked "top"/height in sync with the navbar's own live center —
+// the gsap.set above only runs once, synchronously, before web fonts have
+// necessarily swapped in (which can shift .navbar-inner's own height by a
+// couple px). Re-synced on resize (e.g. crossing the 768px breakpoint, or
+// the menu button's square size otherwise changing the row's height) and
+// once more on window "load" — same rationale as REFRESH AFTER FULL LOAD
+// further down.
+const syncHeroLogo = () => {
+  gsap.set(heroLogo, { top: getNavLogoTop(), height: getNavLogoHeight() });
+  if (!heroLogoDockStarted) {
+    const rect = getHeroLogoNaturalRect();
+    gsap.set(heroLogo, {
+      scale: rect.height / getNavLogoHeight(),
+      y: rect.top - getNavLogoTop(),
+    });
+  }
+};
+window.addEventListener("resize", syncHeroLogo);
+window.addEventListener("load", syncHeroLogo);
 
 // Tracks whether the logo has actually finished docking into the nav —
 // used further down (LOGO HOVER + SCROLL TO TOP) to gate its hover-scale
-// so hovering the huge hero-sized logo, or catching it mid-transition,
-// doesn't trigger it — only once it's fully settled into place.
-// onLeave/onEnterBack fire at "docked" (scrolled forward past the end, or
-// scrolled back up into contact with it from below — both mean it's
-// sitting at its final docked state); onEnter/onLeaveBack fire back to
-// "not docked" (still hero-sized, or actively mid-transition).
+// and click-to-top so hovering/clicking the huge hero-sized logo, or
+// catching it mid-rise, doesn't trigger them — only once it's fully
+// settled into place. One-way now: nothing undocks it again, since its
+// position no longer depends on scroll.
 let heroLogoDocked = false;
 
-const heroToNavTl = gsap.timeline({
-  scrollTrigger: {
-    trigger: ".hero",
-    start: "top top",
-    // Function form (not the "+=50vh" string) so this is always exactly
-    // half the CURRENT viewport height in px, recalculated on resize —
-    // ScrollTrigger's relative-offset shorthand doesn't reliably parse a
-    // vh suffix, which is why this used to jump to its end state after
-    // barely any scrolling (it was reading "50vh" as ~50px).
-    end: () => "+=" + window.innerHeight * 0.5,
-    scrub: 1.5, // a deliberate lag behind the scroll position, so the
-                // motion visibly catches up rather than tracking 1:1 —
-                // combined with ScrollSmoother's own smoothing above,
-                // this is what makes the transition feel smooth instead
-                // of mechanically tied to the scrollbar.
-    invalidateOnRefresh: true, // re-run the function-based from() values
-                                // below whenever ScrollTrigger recalculates
-                                // (it does this on resize automatically),
-                                // instead of reusing whatever was true the
-                                // first time this timeline was built.
-    onLeave: () => { heroLogoDocked = true; heroLogo.classList.add("hero-logo--docked"); },
-    onEnterBack: () => { heroLogoDocked = true; heroLogo.classList.add("hero-logo--docked"); },
-    // Also resets any in-progress hover-enlarge back to normal — if the
-    // mouse stays put while the page scrolls under it (no mouseleave
-    // fires), it could otherwise get stuck enlarged once undocked.
-    onEnter: () => {
-      heroLogoDocked = false;
-      heroLogo.classList.remove("hero-logo--docked");
-      gsap.to(heroLogo.querySelector("svg"), { scale: 1, duration: 0.3, ease: navButtonHoverEase });
-    },
-    onLeaveBack: () => {
-      heroLogoDocked = false;
-      heroLogo.classList.remove("hero-logo--docked");
-      gsap.to(heroLogo.querySelector("svg"), { scale: 1, duration: 0.3, ease: navButtonHoverEase });
-    },
-  },
-});
+// Built at play time by the INTRO SEQUENCE (not up front) so its fromTo
+// values are measured fresh at the moment the rise actually starts —
+// function-based "from" values, so a resize between page load and the end
+// of the logo reveal can't leave it replaying a stale natural size.
+// Shrink and rise run the same duration AND the same shared introEase, so
+// they stay in lockstep with each other and with the text and arrows.
+function buildHeroLogoDockTl(duration) {
+  heroLogoDockStarted = true;
 
-// Both tweens span the whole timeline (position 0, default duration 1),
-// so scrub maps scroll progress 0→1 straight onto each ease curve below —
-// slower at the start, fastest through the middle, slower again at the
-// end, rather than a flat linear response to how far you've scrolled.
-// fromTo (not to) with function-based "from" values, so invalidateOnRefresh
-// above can re-measure the ruler and get a fresh natural size after resize
-// instead of replaying whatever scale/y happened to be current at the time.
-heroToNavTl
-  .fromTo(heroLogo,
-    { scale: () => getHeroLogoNaturalRect().height / getNavLogoHeight() },
-    { scale: 1, ease: heroToNavScaleEase },
-    0
-  )
-  .fromTo(heroLogo,
-    { y: () => getHeroLogoNaturalRect().top - getNavLogoTop() },
-    { y: 0, ease: heroToNavMoveEase },
-    0
-  );
+  return gsap.timeline({
+    onComplete: () => {
+      heroLogoDocked = true;
+      heroLogo.classList.add("hero-logo--docked");
+    },
+  })
+    .fromTo(heroLogo,
+      { scale: () => getHeroLogoNaturalRect().height / getNavLogoHeight() },
+      { scale: 1, duration, ease: introEase },
+      0
+    )
+    .fromTo(heroLogo,
+      { y: () => getHeroLogoNaturalRect().top - getNavLogoTop() },
+      { y: 0, duration, ease: introEase },
+      0
+    );
+}
 
 // -- HERO SCROLL INDICATOR -- //
 //Two overlapping chevrons at the bottom of the hero that breathe up and
-//down on an infinite loop, then fade out (pure opacity, nothing else) as
-//the page scrolls the first 35vh — a "scroll down" hint that gets out of
-//the way once the user's actually doing it.
+//down on an infinite loop. They start invisible (see .hero-scroll-arrow in
+//main.css) and fade in near the end of the intro sequence — the exact
+//moment scroll unlocks, so the hint appearing IS the "you can scroll now"
+//signal (see INTRO SEQUENCE below). Afterwards they fade out (pure
+//opacity, nothing else) as the page scrolls the first 35vh — a "scroll
+//down" hint that gets out of the way once the user's actually doing it.
+//The two fades are on different elements (the chevrons themselves vs.
+//their .hero-scroll-indicator wrapper) so they never fight over the same
+//opacity value.
 //
 //Two independent values drive the breathing loop: the GROUP's own
 //shared y (.hero-scroll-indicator — both chevrons move together, since
@@ -426,15 +418,28 @@ heroToNavTl
 //     loop exactly where it began.
 const heroScrollIndicator = document.querySelector(".hero-scroll-indicator");
 const heroScrollArrowTop = document.querySelector(".hero-scroll-arrow--top");
+const heroScrollArrows = gsap.utils.toArray(".hero-scroll-arrow");
+
+// Called by the INTRO SEQUENCE; a no-op stand-in if the markup is missing.
+let showHeroScrollHint = () => {};
 
 if (heroScrollIndicator && heroScrollArrowTop) {
-  const heroScrollBreatheTl = gsap.timeline({ repeat: -1 })
+  // Paused until the hint actually appears, so the first breath the user
+  // sees starts from the loop's resting pose instead of somewhere partway
+  // through a cycle that ran invisibly for the whole intro.
+  const heroScrollBreatheTl = gsap.timeline({ repeat: -1, paused: true })
     .to(heroScrollIndicator, { y: -4, duration: 0.9, ease: "sine.inOut" }, 0)
     .to(heroScrollArrowTop, { y: -5, duration: 0.9, ease: "sine.inOut" }, 0) // gap: -3 -> +2px (stretched open)
     .to(heroScrollIndicator, { y: 6, duration: 0.5, ease: "sine.inOut" }, 0.9)
     .to(heroScrollArrowTop, { y: 4, duration: 0.5, ease: "sine.inOut" }, 0.9) // gap: -3 -> -7px (squeezed)
     .to(heroScrollIndicator, { y: 0, duration: 0.9, ease: "sine.inOut" }, 1.4)
     .to(heroScrollArrowTop, { y: 0, duration: 0.9, ease: "sine.inOut" }, 1.4);
+
+  // Opacity only — nothing else about the chevrons changes as they appear.
+  showHeroScrollHint = () => {
+    heroScrollBreatheTl.play();
+    gsap.to(heroScrollArrows, { opacity: 1, duration: 0.8, ease: "power1.out" });
+  };
 
   // Plain opacity, not autoAlpha — nothing else about it should change
   // as it fades. scrub (not a discrete toggle) so the fade completes
@@ -744,15 +749,48 @@ document.querySelectorAll(".menu-social-link").forEach((link) => {
 //fallback-font metrics and the layout would shift once the real font
 //swaps in.
 //
-//Not scrubbed — plays as its own timed animation once triggered, not
-//tracked to scroll position. toggleActions "restart none none reset" is
-//what makes it replayable: scrolling down INTO the trigger point always
-//restarts it from scratch, scrolling back UP past it resets to hidden —
-//so scrolling back down again replays the full animation instead of
-//showing it already-finished.
-document.fonts.ready.then(() => {
+//This only PREPARES the text (split, masked, hidden) — it no longer plays
+//anything itself. The reveal is a timed tween owned by the INTRO SEQUENCE
+//below, which starts it while the hero logo rises to the nav; it isn't
+//scroll-triggered or replayable anymore, since the text now lives in the
+//first screen instead of a section further down the page.
+//
+//introTextReady resolves once the split is done (or immediately, with no
+//chars, if the heading is missing), so the sequence can wait on it.
+//
+//A one-letter word — the Czech "a" (and), or the prepositions i/k/o/s/u/v/z
+//— must never be left stranded at the end of a line: standard Czech
+//typography moves it down with the word it belongs to instead ("...
+//kulturních / a kreativních ..."). Done automatically here rather than by
+//hand-typing &nbsp; into the HTML, in two matching parts, because the
+//heading exists as two layers:
+//  - the REAL <h2> (below): each such word gets a non-breaking space in
+//    place of the normal space after it, so the browser can only break
+//    BEFORE the letter. Keeps text selection wrapping identically to what's
+//    on screen. Splits only on plain spaces/tabs/newlines — never on an
+//    existing &nbsp; — so any non-breaking spaces already in the copy
+//    survive.
+//  - the animated COPY (further below): SplitText cuts at non-breaking
+//    spaces too, so the &nbsp; alone doesn't survive into it (checked — the
+//    lone "a" came straight back). There, the letter's word box and the next
+//    one are put in one non-wrapping group instead.
+const SINGLE_LETTER_WORD = /^[aikosuvz]$/i;
+
+function bindSingleLetterWords(text) {
+  const words = text.trim().split(/[ \t\r\n]+/);
+  return words.reduce((out, word, i) => {
+    if (i === 0) return word;
+    return out + (SINGLE_LETTER_WORD.test(words[i - 1]) ? "\u00a0" : " ") + word;
+  }, "");
+}
+
+let introTextChars = [];
+
+const introTextReady = document.fonts.ready.then(() => {
   const introTextReal = document.querySelector(".intro-text-heading--real");
   if (!introTextReal) return;
+
+  introTextReal.textContent = bindSingleLetterWords(introTextReal.textContent);
 
   const introTextDecorative = document.createElement("div");
   introTextDecorative.className = "intro-text-heading intro-text-heading--decorative";
@@ -777,30 +815,42 @@ document.fonts.ready.then(() => {
     mask.appendChild(char);
   });
 
-  gsap.set(introTextSplit.chars, { yPercent: 100 });
+  // Bind each one-letter word to the word after it — see the note above.
+  // The group is display:inline-block + white-space:nowrap (see
+  // .intro-text-word-group in main.css), so it wraps as one unit. It gets
+  // its own plain space between the two boxes; the space SplitText left
+  // between them just ends up next to the group and collapses.
+  introTextSplit.words.forEach((word, i, words) => {
+    const next = words[i + 1];
+    if (!next || !SINGLE_LETTER_WORD.test(word.textContent.trim())) return;
 
-  gsap.to(introTextSplit.chars, {
-    yPercent: 0,
-    duration: 0.6,
-    stagger: 0.02,
-    ease: navButtonHoverEase,
-    scrollTrigger: {
-      trigger: ".intro-text",
-      start: "top 75%", // roughly "25vh into the section entering view" —
-                         // see the comment on this exact line's earlier
-                         // version in project history for the arithmetic
-      toggleActions: "restart none none reset",
-    },
+    const group = document.createElement("span");
+    group.className = "intro-text-word-group";
+    word.parentNode.insertBefore(group, word);
+    group.append(word, " ", next);
   });
+
+  gsap.set(introTextSplit.chars, { yPercent: 100 });
+  introTextChars = introTextSplit.chars;
 });
 
-// -- INTRO ARROWS PARALLAX -- //
+// -- INTRO ARROWS -- //
 //24 decorative Arrow_Up icons scattered behind the "Jsme platforma..."
 //heading, in 3 sizes (.intro-arrow--lg/md/sm in main.css). Built here
 //rather than hardcoded as 24 near-identical inline-SVG blocks in
 //index.html — the layout is really just a data table (which tier, where),
 //so that table lives here and the DOM gets generated from it, same spirit
 //as SHAPE_OFFSETS/arrowLayout elsewhere in this file.
+//
+//Two separate motions, one after the other:
+//  1. RISE (timed, part of the INTRO SEQUENCE below) — every arrow starts
+//     parked just below the bottom edge of the viewport and glides up into
+//     its authored spot, fully opaque the whole way. Each tier has its own
+//     duration, so the big/"close" arrows land first and the small/"far"
+//     ones trail behind them.
+//  2. PARALLAX (scroll-driven, ScrollSmoother's own speed effect) — once
+//     they've all landed, they drift at their tier's own speed as the page
+//     scrolls the first screen away.
 //
 //Positions come from a 6x4 grid (one arrow per cell, jittered within a
 //safe inner margin), not pure random placement — that's what guarantees
@@ -811,34 +861,28 @@ document.fonts.ready.then(() => {
 //hardcoded below as plain left/top percentages (of .intro-arrows' own
 //box) — nothing about this layout needs recomputing at runtime.
 const INTRO_ARROW_TIERS = {
-  // Feeds ScrollSmoother's own data-speed effect below: speed > 1 scrolls
-  // faster than the page, < 1 scrolls slower — so the largest/"closest"
-  // arrows visibly outrun the smallest/"furthest" ones as this section
-  // scrolls by, same depth-layering logic as a real parallax scene.
-  lg: { speed: 1.6 },
-  md: { speed: 1.15 },
-  sm: { speed: 0.7 },
+  // speed feeds ScrollSmoother's own data-speed effect below: speed > 1
+  // scrolls faster than the page, < 1 scrolls slower — so the largest/
+  // "closest" arrows visibly outrun the smallest/"furthest" ones as the
+  // first screen scrolls by, same depth-layering logic as a real parallax
+  // scene.
+  // rise is how long (seconds) that tier takes to glide up into place
+  // during the intro — same depth logic, just in time instead of scroll.
+  lg: { speed: 1.6, rise: 1.1 },
+  md: { speed: 1.15, rise: 1.3 },
+  sm: { speed: 0.7, rise: 1.5 },
 };
 
-// The first entry is deliberately the one sitting right at the section's
-// top edge, clear of the centered heading — it's what's already on screen
-// the instant .intro-text starts entering the viewport from the hero
-// above, so there's no blank beat before any arrow shows up.
-//
 // Two "sm" entries (marked below) sit noticeably lower than the grid cell
-// they were generated in. clamp() (see the .effects() call further down)
-// stops the parallax from leaking past scroll position 0 in general, but
-// it doesn't zero out the offset for something that's simply not centered
-// in the viewport yet — a "sm" arrow (speed 0.7, i.e. the tier that lags
-// BEHIND normal scroll) sitting near this section's top edge still gets
-// dragged upward by tens of px at scroll 0, which was enough to poke it
-// up into the hero above before any scrolling had happened. "lg"/"md"
-// (speed > 1) don't have this problem — they lag the other way, further
-// INTO the section, not out of it. Moving these two down past roughly the
-// section's own vertical midpoint gives the lag enough room to happen
-// inside .intro-text's own bounds instead of spilling out its top.
+// they were generated in. That was done back when this layout lived in its
+// own section below a separate hero, to keep the "sm" tier's lagging
+// parallax from spilling upward into that hero. There's no section above
+// it anymore, so the reason is gone, but the positions are left as they
+// were.
 const INTRO_ARROWS_LAYOUT = [
-  { tier: "lg", left: 22.50, top: 6.07 },
+  { tier: "lg", left: 22.50, top: 9.00 }, // pushed down from 6.07 — on a
+                                           // phone its tip touched the FMK
+                                           // logo in the fixed navbar
   { tier: "sm", left: 35.76, top: 46.00 }, // pushed down from 5.11
   { tier: "lg", left: 54.78, top: 93.90 },
   { tier: "md", left: 90.79, top: 64.68 },
@@ -854,7 +898,9 @@ const INTRO_ARROWS_LAYOUT = [
   { tier: "sm", left: 87.43, top: 94.23 },
   { tier: "md", left: 42.67, top: 58.80 },
   { tier: "sm", left: 51.93, top: 69.69 },
-  { tier: "md", left: 15.03, top: 5.42 },
+  { tier: "md", left: 15.03, top: 13.50 }, // pushed down from 5.42 — up there
+                                             // it poked into the FMK logo
+                                             // in the fixed navbar
   { tier: "lg", left: 62.10, top: 11.27 },
   { tier: "lg", left: 70.62, top: 59.67 },
   { tier: "md", left: 12.01, top: 68.92 },
@@ -865,6 +911,19 @@ const INTRO_ARROWS_LAYOUT = [
 ];
 
 const introArrowsContainer = document.querySelector(".intro-arrows");
+
+// One { el, tier, top } per arrow, in layout order — filled below, read by
+// the rise tween so each arrow knows how far below the viewport it starts.
+const introArrowEntries = [];
+const INTRO_ARROW_OFFSCREEN_BUFFER = 24; // px past the viewport's bottom
+                                          // edge, so no sliver of an arrow
+                                          // peeks in while parked
+
+// How far down (px) an arrow with this authored top% has to be pushed to
+// sit just below the viewport's bottom edge. .hero starts at scroll 0, so
+// an arrow's on-screen top is simply its top% of the container's height.
+const getIntroArrowStartY = (top) =>
+  window.innerHeight - (top / 100) * introArrowsContainer.offsetHeight + INTRO_ARROW_OFFSCREEN_BUFFER;
 
 if (introArrowsContainer) {
   // Same path data as .video-arrow-icon elsewhere in this file/index.html
@@ -878,7 +937,11 @@ if (introArrowsContainer) {
     svg.setAttribute("fill", "none");
     svg.setAttribute("aria-hidden", "true");
     svg.classList.add("intro-arrow", `intro-arrow--${tier}`);
-    gsap.set(svg, { left: `${left}%`, top: `${top}%` });
+    // Parked below the viewport from the start (not just once the rise
+    // begins) — the logo reveal plays for over a second before anything
+    // else does, and the arrows must not sit in their final spots during
+    // it.
+    gsap.set(svg, { left: `${left}%`, top: `${top}%`, y: getIntroArrowStartY(top) });
 
     const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
     path.setAttribute("d", ARROW_PATH_D);
@@ -886,28 +949,126 @@ if (introArrowsContainer) {
     svg.appendChild(path);
 
     introArrowsContainer.appendChild(svg);
+    introArrowEntries.push({ el: svg, tier, top });
+  });
+}
+
+// The timed rise: one tween per tier (each tier has its own duration —
+// GSAP can't vary duration per target inside one tween), every arrow going
+// from wherever "just below the viewport" is for ITS OWN authored top,
+// re-measured now rather than reusing the value from page load, up to y:0.
+// introEase, shared with the logo rise and the text reveal (see INTRO
+// EASE).
+function buildIntroArrowsRiseTl() {
+  const riseTl = gsap.timeline();
+
+  Object.entries(INTRO_ARROW_TIERS).forEach(([tier, { rise }]) => {
+    const tierEntries = introArrowEntries.filter((entry) => entry.tier === tier);
+    if (!tierEntries.length) return;
+
+    riseTl.fromTo(
+      tierEntries.map((entry) => entry.el),
+      { y: (i) => getIntroArrowStartY(tierEntries[i].top) },
+      { y: 0, duration: rise, ease: introEase },
+      0
+    );
   });
 
-  // Wired up programmatically (rather than static data-speed attributes)
-  // because these elements don't exist yet at the ScrollSmoother.create()
-  // call above — .effects() is the documented way to apply speed/lag to
-  // anything added to the DOM afterward. One call per tier since each
-  // needs its own speed.
-  //
-  // speed is wrapped in clamp(...) — plain data-speed only reaches its
-  // authored position once the element is vertically centered in the
-  // viewport, which means anything not yet centered (like this whole
-  // section on page load, still a screen below the hero) starts out
-  // already displaced from where it's actually laid out. That was why
-  // the arrows were visible, overflowing above the section, before any
-  // scrolling had happened. clamp() keeps that same speed effect during
-  // normal scrolling but stops it from "leaking" past the page's own
-  // bounds — so at scroll position 0 every arrow sits exactly at its
-  // authored spot (fully inside the section, nothing poking out into the
-  // hero above), and the parallax only actually starts once real
-  // scrolling carries it away from there.
+  return riseTl;
+}
+
+// Wired up programmatically (rather than static data-speed attributes)
+// because these elements don't exist yet at the ScrollSmoother.create()
+// call above — .effects() is the documented way to apply speed/lag to
+// anything added to the DOM afterward. One call per tier since each
+// needs its own speed.
+//
+// Called by the INTRO SEQUENCE once the rise above has finished, NOT at
+// creation time: .effects() works out each arrow's baseline from where the
+// element currently sits on screen, and mid-rise (or parked below the
+// viewport) that's nowhere near its authored spot — attach it then and the
+// parallax would be anchored to the wrong place for good. Nothing is lost
+// by waiting, since scroll is locked until roughly this same moment anyway.
+//
+// speed is wrapped in clamp(...) — plain data-speed only reaches its
+// authored position once the element is vertically centered in the
+// viewport, which means anything not yet centered would start out already
+// displaced from where it's actually laid out. clamp() keeps that same
+// speed effect during normal scrolling but stops it from "leaking" past
+// the page's own bounds — so at scroll position 0 every arrow sits exactly
+// at its authored spot, and the parallax only actually starts once real
+// scrolling carries it away from there.
+function attachIntroArrowsParallax() {
+  if (!introArrowsContainer) return;
+
   Object.entries(INTRO_ARROW_TIERS).forEach(([tier, { speed }]) => {
     smoother.effects(introArrowsContainer.querySelectorAll(`.intro-arrow--${tier}`), { speed: `clamp(${speed})` });
+  });
+}
+
+// -- INTRO SEQUENCE -- //
+//Everything that happens after the logo reveal finishes, as ONE timeline so
+//the pieces stay in lockstep instead of each guessing when the others
+//started:
+//  - t=0: the logo rises to its nav spot (see HERO LOGO TO NAV) — starts on
+//    the exact frame the reveal completes, since this is called from that
+//    timeline's own onComplete.
+//  - INTRO_ARROWS_DELAY: the arrows begin gliding up from below the screen.
+//  - INTRO_TEXT_DELAY: the heading's letters slide up, one by one. Held back
+//    a beat so the first letters don't land while the big logo is still
+//    sitting on top of that same spot.
+//  - INTRO_HINT_AT (a fraction of the way through the text reveal): the
+//    scroll-down chevrons fade in AND scroll unlocks — on purpose the same
+//    instant, so the hint showing up is exactly the signal "you can scroll
+//    now". Everything before this point is locked (see SMOOTH SCROLL SETUP).
+//  - once the last arrow lands: scroll parallax gets attached to them.
+//
+//Waits on introTextReady (fonts loaded + heading split) before building
+//anything, so the text and the logo rise always start together — normally
+//that promise is already resolved by the time the logo reveal ends, so this
+//adds no delay at all.
+const INTRO_DOCK_DURATION = 1.2; // logo rise, seconds
+const INTRO_ARROWS_DELAY = 0.2;
+const INTRO_TEXT_DELAY = 0.35; // tuned to the shared introEase: the logo has
+                                // cleared the text block by ~0.3-0.6s
+                                // (measured 390px to 1920px wide), and the
+                                // first letter only becomes visible ~0.2s
+                                // after its own start because it eases in
+                                // too — so this lands it right as the logo
+                                // leaves. Retune if INTRO_DOCK_DURATION or
+                                // introEase change.
+const INTRO_HINT_AT = 0.85;
+
+function playIntroSequence() {
+  introTextReady.then(() => {
+    const introTl = gsap.timeline();
+
+    introTl.add(buildHeroLogoDockTl(INTRO_DOCK_DURATION), 0);
+    introTl.add(buildIntroArrowsRiseTl(), INTRO_ARROWS_DELAY);
+
+    const arrowsEnd = INTRO_ARROWS_DELAY + Math.max(...Object.values(INTRO_ARROW_TIERS).map((tier) => tier.rise));
+    introTl.call(attachIntroArrowsParallax, null, arrowsEnd);
+
+    let hintAt = INTRO_TEXT_DELAY; // if there's no heading to reveal, the
+                                     // hint/unlock just follows the delay
+    if (introTextChars.length) {
+      const textTween = gsap.to(introTextChars, {
+        yPercent: 0,
+        duration: 0.6,
+        stagger: 0.02,
+        ease: introEase,
+      });
+      introTl.add(textTween, INTRO_TEXT_DELAY);
+      hintAt = INTRO_TEXT_DELAY + textTween.duration() * INTRO_HINT_AT;
+    }
+
+    introTl.call(() => {
+      showHeroScrollHint();
+      introDone = true;
+      // Don't unlock underneath an open menu — closeMenu() releases it
+      // itself (now that introDone is true) when the menu gets closed.
+      if (!navMenuOpen) smoother.paused(false);
+    }, null, hintAt);
   });
 }
 
@@ -918,11 +1079,11 @@ if (introArrowsContainer) {
 //ScrollSmoother moves #smooth-content via a transform, and a transform'd
 //ancestor breaks native sticky the same way it breaks position:fixed
 //(see the comment on #smooth-wrapper in index.html for the same issue
-//elsewhere on this site). .cards-heading "becomes sticky" the exact same
-//way — it's pinned together with the row as part of the same
-//.cards-stack, so the moment the pin engages is already the moment the
-//first card starts moving; no separate trigger needed to keep those two
-//in sync.
+//elsewhere on this site). .cards-heading is pinned together with the row
+//as part of the same .cards-stack, so the moment the pin engages is
+//already the moment the first card AND the heading's own dock-in tween
+//(see HEADING DOCK below) start moving; no separate trigger needed to
+//keep them in sync.
 //
 //The cards already sit in their final overlapping horizontal layout from
 //the start (see .card--2/.card--3's margin-left in main.css) — only
@@ -979,11 +1140,10 @@ if (cards.length) {
       // a transform, and a transform'd ancestor breaks native sticky the
       // same way it breaks position:fixed (see the comment on
       // #smooth-wrapper in index.html for the same issue elsewhere on
-      // this site). .cards-heading "becomes sticky" the exact same way —
-      // it's pinned together with the row as part of the same
-      // .cards-stack, so the moment the pin engages is already the
-      // moment the first card starts moving; no separate trigger needed
-      // to keep those two in sync.
+      // this site). .cards-heading is pinned together with the row as
+      // part of the same .cards-stack, so the moment the pin engages is
+      // already the moment the first card AND the heading's own dock-in
+      // tween (see HEADING DOCK below) start moving together.
       //
       // The cards already sit in their final overlapping horizontal
       // layout from the start (see .card--2/.card--3's margin-left in
@@ -1001,8 +1161,8 @@ if (cards.length) {
       // Each card needs to start fully below the viewport. The offset
       // for that has to be computed from the card's position RELATIVE TO
       // .cards-stack, not card.getBoundingClientRect().top on its own —
-      // .cards-section sits ~200vh down the page (after the hero and
-      // intro-text sections), so at the moment this script runs (page
+      // .cards-section sits ~100vh down the page (right after the hero),
+      // so at the moment this script runs (page
       // load, scroll position 0) that raw top value reflects the card
       // being far below the CURRENT viewport, not its eventual position
       // once pinned. That previously produced a large NEGATIVE offset —
@@ -1016,12 +1176,59 @@ if (cards.length) {
       // viewport's own top (y:0), so viewport height minus that stable
       // offset is the correct amount to push each card down by.
       const cardsStackEl = document.querySelector(".cards-stack");
-      const FIRST_CARD_PEEK = 80; // px of card--1 left showing above the
-                                   // viewport's bottom edge before its own
-                                   // reveal tween starts — same "don't
-                                   // start from a hard blank" idea as the
-                                   // intro arrows' deliberately-placed
-                                   // first arrow
+      // Extra distance (on top of "just barely hidden", see hiddenY below)
+      // all three cards start below the viewport's bottom edge. This is
+      // what makes the reveal take a noticeably longer scroll before
+      // card--1 actually arrives, WITHOUT a separate leading dead-scroll
+      // pause (tried first, then reverted): that approach left card--1
+      // peeking into view the instant the pin engaged AND had a stretch of
+      // scrolling right after where nothing visibly moved — read as broken
+      // rather than "taking a bit longer". Starting further away instead
+      // means something is moving from the very first pixel of scroll, it
+      // just has further to travel before it's actually visible.
+      // .cards-section grew to match (see main.css) so covering that extra
+      // distance doesn't also feel rushed.
+      const CARDS_EXTRA_DROP = 300;
+
+      // -- HEADING DOCK -- //
+      // .cards-heading docks to a fixed spot near the top of the pinned
+      // viewport (see .cards-heading's position:absolute/top in main.css)
+      // — the exact same "measure the natural rect, then animate scale/y
+      // down to the docked spot" trick the docked Upper logo uses
+      // (buildHeroLogoDockTl above), just scroll-scrubbed here instead of
+      // played once during the intro.
+      //
+      // .cards-heading's OWN CSS is already its small, docked, 32px/40px-
+      // line-height layout — that's what reserves its space in
+      // .cards-stack's padding-top regardless of scroll position (see
+      // main.css), so this can't just measure the element as-is to find
+      // the "start" (big, centered) look; that look no longer exists in
+      // CSS at all; it's purely this scale factor. HEADING_START_SCALE
+      // (2.5) is exactly old-size ÷ new-size (80px ÷ 32px) — scaling the
+      // whole small-styled element up by that factor reproduces the old
+      // 80px look pixel-for-pixel (its line-height scales right along
+      // with it, same as it would with a plain font-size change).
+      //
+      // headingOffsetInStack/headingHeight are measured the same way
+      // cardOffsetInStack/hiddenY are above: relative to .cards-stack's
+      // own top, which is what stays stable regardless of scroll position
+      // and becomes the heading's actual viewport-relative position once
+      // .cards-stack is pinned (top:0). From that, the required start "y"
+      // is just the pixel difference between the heading's natural docked
+      // center and dead-center of the viewport (window.innerHeight / 2)
+      // — where it used to sit, centered together with the cards, before
+      // this docking behavior existed. GSAP's y/scale are independent of
+      // each other (a plain translate, not affected by the element's own
+      // scale), so no extra math is needed to compensate for one when
+      // setting the other.
+      const cardsHeadingEl = document.querySelector(".cards-heading");
+      const HEADING_START_SCALE = 80 / 32; // old 80px heading size ÷ its new 32px docked size
+      if (cardsHeadingEl) {
+        const headingRect = cardsHeadingEl.getBoundingClientRect();
+        const headingOffsetInStack = headingRect.top - cardsStackEl.getBoundingClientRect().top;
+        const headingStartY = window.innerHeight / 2 - (headingOffsetInStack + headingRect.height / 2);
+        gsap.set(cardsHeadingEl, { xPercent: -50, y: headingStartY, scale: HEADING_START_SCALE });
+      }
 
       // Each card's RESTING state, once it arrives — not just
       // y:0/rotation:0 for all three anymore. The y values stagger the
@@ -1042,10 +1249,10 @@ if (cards.length) {
         { y: 40, rotation: 10 }, // card--3: right 10°, rests 40px lower than card 1
       ];
 
-      cards.forEach((card, i) => {
+      cards.forEach((card) => {
         const cardOffsetInStack = card.getBoundingClientRect().top - cardsStackEl.getBoundingClientRect().top;
-        const hiddenY = window.innerHeight - cardOffsetInStack + 20;
-        gsap.set(card, { y: i === 0 ? hiddenY - FIRST_CARD_PEEK : hiddenY, rotation: 0 });
+        const hiddenY = window.innerHeight - cardOffsetInStack + 20 + CARDS_EXTRA_DROP;
+        gsap.set(card, { y: hiddenY, rotation: 0 });
       });
 
       const cardsTl = gsap.timeline({
@@ -1061,6 +1268,17 @@ if (cards.length) {
         },
       });
 
+      if (cardsHeadingEl) {
+        // Same slot as card--1 below (position 0, duration 0.6) — so the
+        // heading's rise-and-shrink starts the instant the pin engages
+        // and finishes at exactly the moment card--1's own reveal does,
+        // per the brief ("finishing when the first card has finished the
+        // scroll up"). Same ease, too, so the two reads as one unified
+        // motion rather than two independently-timed elements that just
+        // happen to share a duration.
+        cardsTl.to(cardsHeadingEl, { y: 0, scale: 1, duration: 0.6, ease: "power3.out" }, 0);
+      }
+
       cards.forEach((card, i) => {
         // power3.out (up from power1.out): a more pronounced deceleration
         // right as the card reaches its resting spot, so the settle reads
@@ -1075,11 +1293,11 @@ if (cards.length) {
       cardsTl.to({}, { duration: 0.04 }); // trailing hold — just enough
       // to avoid an instant jump-cut into the next section the moment
       // the third card lands, not a real pause. scrub maps this
-      // section's ENTIRE real scroll distance (.cards-section is 400vh
+      // section's ENTIRE real scroll distance (.cards-section is 460vh
       // tall, minus the 100vh viewport the pin releases at "bottom
-      // bottom" = 300vh of actual scrolling) proportionally onto the
+      // bottom" = 360vh of actual scrolling) proportionally onto the
       // timeline's total duration — so a hold that's, say, 10% of the
-      // timeline isn't a small thing, it's ~30vh of dead scroll. That's
+      // timeline isn't a small thing, it's ~36vh of dead scroll. That's
       // what was still "awkward" even after the previous cut from 1 down
       // to 0.3. At this size (~1.5% of the timeline) it's only a few vh
       // — barely felt as a pause, not as broken scroll.
@@ -1157,23 +1375,70 @@ gsap.utils.toArray(".program-item").forEach((item, i) => {
   });
 });
 
+// -- HOVER ENLARGE -- //
+//Cards, events and calendar items all slightly enlarge while hovered — the
+//same 0.4s and navButtonHoverEase the Menu button uses (see NAV BUTTON
+//HOVER SWAP), just without its text-slide and with a much smaller scale.
+//
+//HOVER_ENLARGE_SCALE is kept small on purpose: an item grows outward from
+//its center, so each side pushes out by (width x (scale - 1) / 2) — and the
+//gap between neighbors is only 12px (.program-item) to 16px (.calendar-
+//event, stacked within a month — see .calendar-month-events). At 1.05 a
+//440px-wide event already grew ~11px per side and touched its neighbor; at
+//1.02 the same item grows ~4px, and the limit before the narrower 12px gap
+//is exceeded is an item ~1200px wide (nothing on the site is close). If the
+//layout ever gets wider items or narrower gaps, lower this.
+//
+//Applied to the whole element (image/text/button together), not to an
+//inner piece: .program-image already has its own scale tween from PROGRAMS
+//SECTION REVEAL, and the desktop .card already has y/rotation driven by
+//CARD STACK REVEAL and .calendar-event's y/autoAlpha by CALENDAR EVENT
+//REVEAL — GSAP composes scale with those without conflict since they're
+//different properties, but a second scale on the same element as an
+//existing scale tween would fight it. (The overlapping desktop cards are
+//meant to overlap; this just nudges the hovered one.)
+//
+//Deliberately self-contained and tentative — delete this whole section
+//(nothing else depends on it) to remove the effect everywhere, or remove a
+//selector from the list to drop it from just one. Gated to devices that can
+//actually hover, since touch browsers fire mouseenter on tap and would
+//leave an item stuck enlarged.
+//
+//.card--1 ("Platforma") is excluded: unlike the other two cards it carries
+//no data-cursor and no link — there's nothing for it to lead to — so it
+//gets no hover affordance either, matching [data-cursor]'s own "only
+//clickable things get the pointer cursor" rule above.
+const HOVER_ENLARGE_SCALE = 1.02;
+const HOVER_ENLARGE_SELECTORS = [".card:not(.card--1)", ".program-item", ".calendar-event", ".calendar-robota-cta"];
+
+if (window.matchMedia("(hover: hover)").matches) {
+  gsap.utils.toArray(HOVER_ENLARGE_SELECTORS.join(", ")).forEach((item) => {
+    item.addEventListener("mouseenter", () => {
+      gsap.to(item, { scale: HOVER_ENLARGE_SCALE, duration: 0.4, ease: navButtonHoverEase });
+    });
+    item.addEventListener("mouseleave", () => {
+      gsap.to(item, { scale: 1, duration: 0.4, ease: navButtonHoverEase });
+    });
+  });
+}
+
 // -- CALENDAR EVENT REVEAL -- //
 //Each event card slides up AND fades in from 0 opacity into place as it
 //individually scrolls into view — same "top 80%"/once:true pattern as
 //PROGRAMS SECTION REVEAL above: its own trigger per card, plays once,
 //never resets on scrolling back up.
 //
-//Cards sit two per row (.calendar-event: grid-column span 6 on the
-//12-column .calendar-grid, see main.css) — the right-hand one in each
-//pair gets a small delay so a row doesn't pop in as one flat block.
-gsap.utils.toArray(".calendar-event").forEach((event, i) => {
+//Cards stack one per row within their month now (.calendar-month-events,
+//see main.css) instead of sitting two per row — no more left/right pairs
+//to stagger apart, so each card's own scroll-position trigger (16px below
+//the one above it) is what naturally spaces their reveals out instead.
+gsap.utils.toArray(".calendar-event").forEach((event) => {
   gsap.set(event, { y: 60, autoAlpha: 0 });
 
   gsap.to(event, {
     y: 0,
     autoAlpha: 1,
     duration: 0.8,
-    delay: i % 2 === 1 ? 0.15 : 0,
     ease: "power3.out",
     scrollTrigger: {
       trigger: event,
@@ -1184,34 +1449,13 @@ gsap.utils.toArray(".calendar-event").forEach((event, i) => {
 });
 
 // -- TESTIMONIALS CARD HEIGHT -- //
-//All 9 cards share one height: the tallest card's own natural
-//(content-driven) height, measured before anything is fixed — a card
-//that already had an explicit height set couldn't tell you what its own
-//natural height should be, same reasoning as CONTACTS ACCORDION above.
-//
-//Wrapped in a function and re-run on window "load" and on resize, not
-//just once at initial script execution — run that early (synchronously,
-//right as the DOM parses), the "Katarine" web font hasn't necessarily
-//swapped in yet; the fallback font's different metrics can wrap
-//.testimonial-quote into fewer lines than the real font eventually
-//needs, understating "tallest" — once the real font lands, that card's
-//real content overflows the now-stale fixed height, clipping the text.
-//Resets every card to "auto" first, since an already-fixed height can't
-//report its own true content height back via offsetHeight.
+//Removed: cards used to all share the tallest card's height (measured via
+//JS, forced with an inline style). Now each .testimonial-item just hugs
+//its own content instead — .testimonials-track (main.css) opts out of
+//flex's default cross-axis stretch (align-items:flex-start) so that's
+//true with no JS involved at all. testimonialItems itself stays: TESTIMONIALS
+//DRAG SCROLL right below still needs it.
 const testimonialItems = gsap.utils.toArray(".testimonial-item");
-
-function syncTestimonialCardHeight() {
-  if (!testimonialItems.length) return;
-  testimonialItems.forEach((item) => { item.style.height = "auto"; });
-  const tallestTestimonialHeight = Math.max(...testimonialItems.map((item) => item.offsetHeight));
-  testimonialItems.forEach((item) => {
-    item.style.height = tallestTestimonialHeight + "px";
-  });
-}
-
-syncTestimonialCardHeight();
-window.addEventListener("load", syncTestimonialCardHeight);
-window.addEventListener("resize", syncTestimonialCardHeight);
 
 // -- TESTIMONIALS DRAG SCROLL -- //
 //.testimonials-track is dragged horizontally inside the .testimonials-
@@ -1303,14 +1547,21 @@ if (testimonialsTrack && testimonialsScroll && testimonialItems.length) {
 //camera), the scale change alone is what reads as it swinging closer then
 //further away.
 //
-//This is driven by a single standalone ScrollTrigger (no linked tween/
-//timeline — with 15 items each needing its own position+scale+curve
-//formula every frame, one ScrollTrigger reading self.progress and writing
-//directly via gsap.set in a loop is both simpler and cheaper than 15
-//separate scrubbed tweens) using the same tall-wrapper-plus-pinned-100vh-
-//stack split CARD STACK REVEAL above uses: .gallery-scroll (tall)
-//provides the scroll distance, .gallery-stack (100vh) is what actually
-//gets pinned.
+//This is driven by two standalone ScrollTriggers (no linked tween/timeline
+//— with 15 items each needing its own position+scale+curve formula every
+//frame, reading self.progress and writing directly via gsap.set in a loop
+//is both simpler and cheaper than 15 separate scrubbed tweens), using the
+//same tall-wrapper-plus-pinned-100vh-stack split CARD STACK REVEAL above
+//uses: .gallery-scroll (tall) provides the scroll distance, .gallery-stack
+//(100vh) is what actually gets pinned.
+//
+//The two triggers split PINNING from PROGRESS: one does nothing but pin
+//.gallery-stack ("top top" to "bottom bottom", same as before); the other,
+//wider one ("top bottom" to "bottom bottom" — see PRE-ROLL REVEAL below)
+//owns the onUpdate that actually renders the photos. Splitting them is
+//what lets the photos start responding to scroll BEFORE the section is
+//pinned — while it's still scrolling up into view — without changing
+//where the lock-in itself happens.
 const galleryItems = gsap.utils.toArray(".gallery-image-wrap");
 
 if (galleryItems.length) {
@@ -1407,11 +1658,34 @@ if (galleryItems.length) {
   computeGalleryLayout();
   renderGallery(0); // initial paint, before any scroll/refresh event has fired
 
+  // Pin only — no onUpdate/onRefresh here anymore, see PRE-ROLL REVEAL
+  // below for what actually drives the photos.
   ScrollTrigger.create({
     trigger: ".gallery-scroll",
     start: "top top",
     end: "bottom bottom",
     pin: ".gallery-stack",
+  });
+
+  // -- PRE-ROLL REVEAL -- //
+  // Photos now react to scroll starting from "top bottom" (.gallery-scroll's
+  // own top first touching the viewport's BOTTOM edge — i.e. the section
+  // is still scrolling up into view, well before the pin above engages at
+  // "top top") through to "bottom bottom", the exact same point the pin
+  // releases at. That span is exactly .gallery-scroll's own full height —
+  // "top bottom" to "top top" is one viewport-height of scroll (the
+  // lead-in), "top top" to "bottom bottom" is the pin's own range (as
+  // before) — so this single trigger's 0-1 progress sweeps continuously
+  // across both with no seam to blend by hand: at the exact scroll
+  // position the pin locks in, this trigger's progress is already
+  // whatever fraction of the total height the lead-in consumed, and it
+  // just keeps counting up from there. Before this, that entire lead-in
+  // stretch was dead scroll — nothing watched it, so the first photo sat
+  // fully hidden right up until the instant the pin engaged.
+  ScrollTrigger.create({
+    trigger: ".gallery-scroll",
+    start: "top bottom",
+    end: "bottom bottom",
     scrub: 0.6, // a touch of lag (not scrub:true's exact 1:1) — this is a
                  // continuous flowing motion, not something that needs
                  // precise arrival timing the way .cards-stack/.contact-
@@ -1426,6 +1700,10 @@ if (galleryItems.length) {
 }
 
 // -- VIDEO ARROWS REVEAL -- //
+// Commented out for now — the arrows aren't wanted around the video
+// section. Left in place (not deleted) in case they come back later; see
+// the matching .video-arrow markup commented out in index.html.
+/*
 //Wireframe/concept, not final. Cut down from a shrink+pin+snap sequence
 //to just this: each arrow reveals by sliding out from behind a mask —
 //same overflow:hidden + translate technique as INTRO TEXT REVEAL, just
@@ -1497,6 +1775,7 @@ if (videoRect && videoArrows.length === 8) {
     },
   });
 }
+*/
 
 // -- LOGO HOVER + SCROLL TO TOP -- //
 //Three logos share "slightly enlarge on hover, like a nav button" but

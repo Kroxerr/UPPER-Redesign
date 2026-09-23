@@ -14,6 +14,33 @@ html {
      needs to line up with the edges — margin on adjacent siblings would
      double up between them. */
   --side-margin: 3rem; /* 48px */
+
+  /* Site-wide vertical padding (top AND bottom) of every regular section,
+     so they all sit the same, tight distance from each other. The video
+     section (160px) and the footer are the deliberate exceptions, and the
+     pinned card stack has its own, see --cards-padding-y below. Unlike
+     --side-margin this does NOT shrink on mobile — same 80px everywhere. */
+  --section-padding-y: 5rem; /* 80px */
+
+  /* The fixed navbar's total height: 18px padding + the 48px Menu button
+     (14px padding around a 20px label — see .nav-button--menu) + 18px
+     padding. A constant rather than measured, so it has to be updated by
+     hand if the button's padding or the navbar's own padding ever change. */
+  --nav-height: 5.25rem; /* 84px */
+
+  /* The card stack's top/bottom clearance: the navbar plus 40px, so the
+     cards never end up underneath it. See .cards-stack and .card. */
+  --cards-padding-y: calc(var(--nav-height) + 2.5rem); /* 124px */
+
+  /* Extra reserved space ABOVE the card row specifically, stacked on top
+     of --cards-padding-y at the top only (see .cards-stack's padding-top):
+     .cards-heading docks there once scrolled into place (CARD STACK REVEAL,
+     animations.js), so the row needs to start further down than the plain
+     navbar clearance alone would leave. 2.5rem is the docked heading's own
+     line-height (see .cards-heading font-size/line-height below); 2rem is
+     a plain breathing-room gap between the heading and the row — tune this
+     second number if the two ever feel too tight/loose. */
+  --cards-heading-space: calc(2.5rem + 2rem); /* 72px: 40px line-height + 32px gap */
 }
 
 @media (max-width: 768px) {
@@ -62,7 +89,7 @@ body {
   margin: 0;
   font-family: Arial, Helvetica, sans-serif;
   line-height: 1.6;
-  background-color: #F3F3F3;
+  background-color: #ededed;
 }
 
 /* Context cursor: a floating, mouse-following label. Hidden by default;
@@ -205,7 +232,8 @@ body {
     gap: 1rem;
 }
 
-/* Shared shape for both nav buttons; fill/outline below only change color. */
+/* Shared shape for the nav buttons; .nav-button--fill below only changes
+   color. */
 .nav-button {
     position: relative;
     display: inline-flex;
@@ -231,25 +259,22 @@ body {
     color: #FFFFFF;
 }
 
-.nav-button--outline {
-    background-color: #F3F3F3;
-    color: #111111;
-    border: 1px solid rgba(17, 17, 17, 0.4); /* #111111 @ 40% */
-}
-
-/* Menu button specifically opts out of --outline's own #F3F3F3 fill —
-   no background at all, just the border/text — and picks up a smooth
-   color transition, since .navbar--light below swaps its color/border
-   to white whenever a black-background section (or the open menu
-   itself) sits behind it. See NAVBAR COLOR SWAP in animations.js. */
+/* Menu button: no fill and no outline — just the text and hamburger — with
+   14px of padding all the way around (was 20px 26px, plus a 1px border).
+   That makes it 48px tall (14 + the 20px label + 14), which is what
+   --nav-height above is derived from. Picks up a smooth color transition,
+   since .navbar--light below swaps its color to white whenever a black-
+   background section (or the open menu itself) sits behind it. See NAVBAR
+   COLOR SWAP in animations.js. */
 .nav-button--menu {
     background-color: transparent;
-    transition: color 0.3s ease, border-color 0.3s ease;
+    color: #111111;
+    padding: 0.875rem; /* 14px */
+    transition: color 0.3s ease;
 }
 
 .navbar--light .nav-button--menu {
     color: #FFFFFF;
-    border-color: #FFFFFF;
 }
 
 @media (max-width: 768px) {
@@ -447,7 +472,7 @@ body {
 }
 
 .hero {
-  position: relative; /* anchors .hero-scroll-indicator */
+  position: relative; /* anchors .hero-scroll-indicator and .intro-arrows */
   height: 100vh;
   width: 100%;
   display: flex;
@@ -493,6 +518,8 @@ body {
   width: 28px;
   height: auto;
   color: #111111;
+  opacity: 0; /* hidden until the intro sequence fades it in — see
+                 showHeroScrollHint in animations.js */
 }
 
 .hero-scroll-arrow--top {
@@ -537,37 +564,35 @@ body {
   overflow: visible;
 }
 
-/* Reveal-on-enter: the mask (.intro-text-mask) is sized by its own
+/* The intro text and arrows live INSIDE .hero (above) — one 100vh first
+   screen instead of a hero followed by a separate intro section. The
+   heading is centered by .hero's own flex centering once the logo has
+   moved out to the nav; the logo, arrows, text and scroll hint are all
+   sequenced by one timeline, see INTRO SEQUENCE in animations.js.
+
+   Reveal-on-load: the mask (.intro-text-mask) is sized by its own
    content (the heading) since it holds only ONE copy of the text,
    positioned via transform — unlike .nav-button-label, which needed an
    explicit height override because it held two stacked copies in normal
    flow. Width is on the mask (not the heading) since that's what needs
    to constrain wrapping to 65vw; the heading just fills it. Animated by
    animations.js — see "INTRO TEXT REVEAL" there. */
-.intro-text {
-  position: relative; /* anchors .intro-arrows to this section's own box */
-  height: 80vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
 
-/* Parallax arrow field behind the heading — built entirely by
-   animations.js (see INTRO ARROWS PARALLAX there for the layout data and
-   how the scroll speed per size is applied). Sits behind the text: DOM
+/* Arrow field behind the heading — built entirely by animations.js (see
+   INTRO ARROWS there for the layout data, the rise-in on load and how the
+   scroll speed per size is applied). Sits behind the text: DOM
    order alone would already put .intro-text-mask on top since it comes
    after this in the markup, but z-index is set explicitly on both so
    that stacking doesn't depend on markup order staying the same.
    overflow is deliberately NOT hidden: the parallax means each arrow
    drifts away from its static spot at its own rate, and a hard clip at
-   .intro-text's own bottom edge would cut slower/faster arrows off
+   .hero's own bottom edge would cut slower/faster arrows off
    mid-drift right as they cross it. Left visible, an arrow that spills
    past the bottom edge keeps showing through .cards-section below (which
    has no background of its own there — see main.css there) until it
    actually scrolls past the top of the viewport, instead of vanishing
-   abruptly at the section boundary. (Nothing spills out the TOP into the
-   hero above pre-scroll — that's handled by clamping the parallax speed
-   itself in animations.js, not by clipping here.) */
+   abruptly at the section boundary. The same open overflow is what lets
+   the arrows sit parked below the hero, out of view, before they rise. */
 .intro-arrows {
   position: absolute;
   inset: 0;
@@ -704,6 +729,16 @@ body {
   clip-path: inset(-10px -100px -10px -100px);
 }
 
+/* A one-letter word (the Czech "a", "v", "s"...) plus the word after it,
+   built by animations.js so the letter can never be stranded at the end of
+   a line. inline-block + nowrap makes the pair wrap as ONE unit: the line
+   can break before the letter, but never between it and its word. */
+.intro-text-word-group {
+  display: inline-block;
+  white-space: nowrap;
+  vertical-align: top;
+}
+
 /* Reusable "label" tag — a small bordered link, meant to be reused
    throughout the page (e.g. as scroll-to-section links from the menu). */
 .label {
@@ -768,8 +803,8 @@ body {
   margin: 0;
   font-family: "Katarine", Arial, Helvetica, sans-serif;
   font-weight: 600; /* Semibold */
-  font-size: 8rem; /* 128px */
-  line-height: 8rem; /* 128px */
+  font-size: 5rem; /* 80px — was 8rem (128px) */
+  line-height: 5.375rem; /* 86px — was 8rem (128px) */
   letter-spacing: -0.03em; /* -3%, matching .cards-heading/.card-title */
   color: #EB2837;
 }
@@ -792,59 +827,92 @@ body {
    -64px margins here are a permanent part of the layout, not something
    JS has to account for.
 
-   .cards-heading and .cards-row are both centered on the exact same
-   point by placing them in the SAME grid cell (grid-area:1/1 on each,
-   .cards-stack itself being the grid) with place-items:center sizing
-   each to its own natural content size instead of stretching it — rather
-   than laid out as flex children of .cards-stack, which would center the
-   WHOLE group (heading + gap + row) as one block and push the heading
-   itself off-center once the row's own height is folded into that
-   centering math. Centering each piece on its own dead-center is what
-   actually keeps the heading pinned in the true vertical center of the
-   viewport once .cards-stack becomes sticky — and, since the cards share
-   that exact same center point, means the cards arrive directly on top
-   of the heading (z-index below the row) rather than stacking below it.
-   (An earlier version did this with position:absolute + top/left:50% +
-   transform:translate(-50%,-50%) on each instead — same result, just a
-   layout hack rather than asking the grid to do it directly.) */
+   .cards-heading docks to a fixed spot near the top of the pinned
+   viewport — 40px below the navbar (--cards-padding-y, the same
+   clearance the navbar-plus-40px docked Upper logo sits within) — via
+   position:absolute, shrinking from a large centered look down to its
+   small docked size as it rises there (CARD STACK REVEAL, animations.js
+   — the exact same "measure the natural rect, then animate scale/y down
+   to the docked spot" trick the docked Upper logo itself uses). Because
+   it's taken out of flow, .cards-row is the only remaining item in
+   .cards-stack's grid, so place-items:center now centers just the row —
+   within the padded area, whose padding-top reserves the heading's own
+   docked height/gap (--cards-heading-space) on top of the usual navbar
+   clearance, so the row settles into whatever space is left BELOW the
+   heading rather than dead-center of the whole viewport. */
 .cards-section {
   position: relative;
-  height: 400vh; /* not specified — tall enough for 3 reveals plus a
-                     trailing held pause; the number to tune if the
-                     pacing feels too fast/slow or too short/long */
+  height: 460vh; /* was 400vh — the extra 60vh backs the cards starting
+                     further below the viewport before they rise into view
+                     (CARDS_EXTRA_DROP, animations.js), so that longer
+                     travel takes noticeably more scroll instead of just
+                     happening faster over the same distance. (A separate
+                     leading dead-scroll pause was tried first and reverted
+                     — it left a stretch of scrolling where nothing moved,
+                     which read as broken rather than "taking longer".)
+                     Otherwise: tall enough for 3 reveals plus a trailing
+                     held pause; the number to tune if the pacing feels too
+                     fast/slow or too short/long. */
 }
 
 .cards-stack {
+  position: relative; /* containing block for .cards-heading's absolute
+                          docking below */
   display: grid;
-  place-items: center; /* both children below are grid-area:1/1 — this is
-                           what stacks and centers them on the same point
-                           instead of the grid auto-placing them into
-                           separate cells */
+  place-items: center; /* .cards-row is the sole grid item now (.cards-
+                           heading is absolutely positioned, out of grid
+                           flow) — this centers it within the padded area
+                           below, both horizontally and vertically */
   height: 100vh;
+  padding-top: calc(var(--cards-padding-y) + var(--cards-heading-space));
+                /* navbar height + 40px, PLUS the docked heading's own
+                   reserved space (see --cards-heading-space) — .cards-row
+                   centers in whatever's left under that, not the full
+                   100vh, so it visibly shrinks/shifts down to make room
+                   for the heading once docked. */
+  padding-bottom: var(--cards-padding-y); /* navbar height + 40px — no
+                                              heading reservation needed
+                                              here, so this side stays as
+                                              it was. The padding on its
+                                              own only marks the clearance;
+                                              .card below is what's sized
+                                              to fit inside it, so the
+                                              cards can't run under the
+                                              navbar (or the heading) on
+                                              short screens. */
 }
 
 .cards-heading {
-  grid-area: 1 / 1;
+  position: absolute; /* docked position — see the block comment above.
+                          left:50% + xPercent:-50 (set via GSAP,
+                          animations.js) split the horizontal centering the
+                          same way the docked Upper logo does, so GSAP's
+                          own y/scale transform doesn't clobber a CSS-authored
+                          translateX */
+  top: var(--cards-padding-y); /* 40px below the navbar — matches the
+                                   docked Upper logo's own clearance, so the
+                                   heading settles 40px below it */
+  left: 50%;
   margin: 0;
-  white-space: nowrap; /* always one line — at 128px this needs roughly
-                           1000px+ to fit, which wrapping (the previous
-                           max-width:90vw) wasn't reliably giving it; the
-                           cards cover this heading anyway once they
-                           arrive (see above), so letting it overflow the
-                           viewport's sides on the narrowest screens
-                           rather than wrap is the better trade */
+  white-space: nowrap; /* always one line — reasonable at this small a
+                           docked size even on the narrowest screens */
   font-family: "Katarine", Arial, Helvetica, sans-serif;
   font-weight: 600; /* Semibold */
-  font-size: 8rem; /* 128px */
-  line-height: 1;
+  font-size: 2rem; /* 32px — its RESTING/docked size; it starts scrolling in
+                       much larger (scaled up, not a separate font-size —
+                       see CARD STACK REVEAL in animations.js) and shrinks
+                       to this as it rises into the docked spot above */
+  line-height: 2.5rem; /* 40px */
   letter-spacing: -0.03em; /* -3%, matching .intro-text-heading */
   color: #EB2837;
 }
 
 .cards-row {
   grid-area: 1 / 1;
-  z-index: 1; /* above .cards-heading (z-index:0) — the cards cover the
-                 heading once they arrive, rather than sitting below it */
+  z-index: 1; /* above .cards-heading — during the scroll-in transition the
+                 rising card--1 and the shrinking heading briefly cross
+                 paths near the middle of the viewport; this keeps the
+                 card in front rather than flashing behind the heading */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -892,7 +960,20 @@ body {
    rather than a plain rem value. */
 .card {
   position: relative;
-  width: min(37.5rem, calc((100vw - 2 * var(--side-margin) + 16rem) / 3));
+  width: min(
+    37.5rem,
+    calc((100vw - 2 * var(--side-margin) + 16rem) / 3),
+    calc((100vh - 2 * var(--cards-padding-y) - var(--cards-heading-space)) * 680 / 760)
+  ); /* third term: the height left inside .cards-stack's own top/bottom
+        padding — now minus --cards-heading-space too, since that's
+        reserved above the row for the docked .cards-heading and isn't
+        available to the cards either — converted to the width that gives
+        a card exactly that tall (680:760 — see aspect-ratio below). Only
+        ever the smallest of the three on shorter screens (a taller cutoff
+        than before, now that the heading's own space also eats into the
+        budget), where it shrinks the whole row so it fits between the
+        navbar-plus-40px clearances (and below the heading) instead of
+        overflowing them. */
   aspect-ratio: 680 / 760; /* height follows from width instead of a
                                separate fixed value, so the 680:760 shape
                                is what's preserved as width above shrinks */
@@ -1012,10 +1093,6 @@ body {
    or a fake JS-driven click handler on the card div. .card already has
    position:relative, so inset:0 here sizes to the full card, not just
    .card-content. */
-.card-button {
-  position: relative;
-}
-
 .card-button::after {
   content: "";
   position: absolute;
@@ -1063,7 +1140,7 @@ body {
    gsap.matchMedia(); see CARD STACK REVEAL in animations.js. */
 @media (max-width: 768px) {
   .cards-section {
-    height: auto; /* was 400vh — that height only ever existed to give
+    height: auto; /* was 460vh — that height only ever existed to give
                       the desktop pin something to scroll through;
                       nothing is pinned here anymore */
   }
@@ -1078,12 +1155,22 @@ body {
                                content width and centered them, instead of
                                each filling the row's full width */
     height: auto;
-    padding: 4rem var(--side-margin); /* not specified — reasonable
-                                           breathing room now that this
-                                           isn't pinned/full-height */
+    padding: var(--cards-padding-y) var(--side-margin); /* navbar height +
+                                           40px top and bottom, same as
+                                           desktop — this isn't pinned/
+                                           full-height here, so it's plain
+                                           section spacing instead */
   }
 
   .cards-heading {
+    position: static; /* was absolute (desktop's docked positioning) —
+                          mobile never scrolls/docks it (CARD STACK REVEAL
+                          only builds that tween on the desktop branch of
+                          its gsap.matchMedia() split), so it stays a
+                          plain flex child here instead, back in normal
+                          flow above .cards-row */
+    top: auto;
+    left: auto;
     margin: 0 0 3rem; /* not specified — reasonable gap to the cards below */
     white-space: normal; /* was nowrap — 128px has no room to stay on one
                               line on a phone screen */
@@ -1224,62 +1311,76 @@ body {
 }
 
 /* -- CALENDAR SECTION -- //
-   .calendar-section-grid is a 12-column grid holding the headline, intro
-   paragraph, and the calendar-grid itself (which spans columns 2–11 —
-   everything except the first and last column, see .calendar-grid below
-   — and is its OWN nested 12-column grid, so each event card can span
-   exactly half via grid-column:span 6 — cleaner than the earlier flex +
-   calc(50% - gap) approach, and what actually makes "two equal halves of
-   the grid columns" a literal truth rather than a percentage that
-   happens to look like it). Each event's own month now carries its year
-   directly ("Říjen 2026" — see index.html), so there's no separate
-   standalone year number here any more. */
-.calendar-section {
-  padding: 20rem 3rem 16rem 3rem; /* vertical padding not specified —
-                                        reasonable section breathing room;
-                                        side padding is the "48px margin" */
-}
+   Fully overhauled layout. .calendar-section-grid is the section's own
+   1920px-capped, 12-column/12px-gutter container: max-width caps the grid
+   itself at 1920px (1920 + a var(--side-margin) margin on each side =
+   the max-width below) and margin-inline:auto centers that box once the
+   viewport is wide enough to show it, while padding-inline (also
+   var(--side-margin)) is what keeps a guaranteed-minimum margin instead
+   of ever running edge-to-edge once the viewport is narrower than that.
+   .calendar-section itself now only carries the top/bottom section
+   padding — side spacing lives entirely on this grid so it's never
+   applied twice.
 
-@media (max-width: 768px) {
-  .calendar-section {
-    padding-left: 1rem; /* 16px — was 3rem (48px); hardcoded here rather
-                             than var(--side-margin), so it needs its own
-                             override */
-    padding-right: 1rem;
-    padding-top: 5rem; /* 80px — was 20rem (320px), way oversized for a
-                            phone screen */
-    padding-bottom: 4rem; /* 64px — was 16rem (256px) */
-  }
+   Columns 1 and 12 are deliberately left empty everywhere in this
+   section — headline/subheadline/month names sit in columns 2-6, events
+   (and the CTA below) in columns 7-11 — so there's always a full extra
+   column of breathing room beyond the var(--side-margin) minimum on
+   both edges, not just a cap on the outer content width.
+
+   Events are grouped by month instead of each repeating its own
+   month/year (.calendar-event-month is gone — see .calendar-event-day
+   below): each .calendar-month is its OWN nested 12-column grid (same
+   column math as .calendar-section-grid, just freshly scoped to this
+   row's width, so it still lines up) with the standalone month name in
+   columns 2-6 and its events stacked (16px gap) in columns 7-11.
+   The dark ROBOTA CTA (.calendar-robota-cta) sits after the last month
+   group, wrapped in its own same-grid .calendar-robota-cta-row so the
+   button itself can be pinned to columns 7-11 too — same width as an
+   event card, not just left-aligned/intrinsic like before. That row is
+   just another child of .calendar-months, so it still picks up the same
+   48px gap the month groups themselves are spaced by for free. */
+.calendar-section {
+  padding: var(--section-padding-y) 0; /* 80px top/bottom, sitewide (see
+                                            :root) — no side padding here;
+                                            .calendar-section-grid below
+                                            owns all horizontal spacing */
 }
 
 .calendar-section-grid {
+  max-width: calc(120rem + 2 * var(--side-margin)); /* 1920px of content +
+                                                         a var(--side-
+                                                         margin) margin on
+                                                         each side (2016px
+                                                         desktop) */
+  margin-inline: auto; /* centers the capped box once the viewport is
+                            wider than max-width above */
+  padding-inline: var(--side-margin); /* 48px (16px on mobile, see :root)
+                                           — the guaranteed-minimum edge
+                                           margin for every viewport
+                                           narrower than max-width, where
+                                           this element isn't being capped/
+                                           centered any more and would
+                                           otherwise run edge-to-edge */
   display: grid;
   grid-template-columns: repeat(12, 1fr);
-  gap: 0.75rem; /* 12px */
+  gap: 0.75rem; /* 12px gutter */
 }
 
 .calendar-section-headline {
-  grid-column: 2 / 12; /* was 1/12 — starts a column later so its left edge
-                           lines up with .calendar-grid's own 2/12 inset
-                           below, at this same (wide desktop, >1450px)
-                           width. See the max-width:1450px block below for
-                           the matching narrower-viewport override. */
+  grid-column: 2 / 7; /* columns 2-6 (5 of 12) — column 1 deliberately
+                          left empty, see the note above */
   grid-row: 1;
   align-self: start; /* stay compact/top-aligned in its row, not stretched
                          to fill it (the grid default) */
 }
 
 .calendar-section-intro {
-  grid-column: 2 / 7; /* was 1/6 — same rightward shift as the headline
-                          above (for the same reason), width unchanged at
-                          5 columns. Left-aligned text, but the box itself
-                          still reaches all the way to column 6's right
-                          edge instead of shrinking to the text's own
-                          width. */
+  grid-column: 2 / 7; /* same column span as the headline above */
   grid-row: 2;
-  margin: -0.25rem 0 0; /* partially cancels .calendar-section-grid's own
-                            12px row-gap, leaving a net 8px gap (was fully
-                            canceled to a true 0px gap) */
+  margin: 0.5rem 0 0; /* not specified — a small gap under the headline,
+                          on top of .calendar-section-grid's own 12px
+                          row-gap */
   text-align: left;
   font-family: "Katarine", Arial, Helvetica, sans-serif;
   font-weight: 500; /* Medium */
@@ -1288,40 +1389,49 @@ body {
   color: #111111;
 }
 
-.calendar-grid {
-  grid-column: 2 / 12; /* columns 2–11 — leaves column 1 and column 12
-                           empty on either side, shrinking every event
-                           card inside (each still spans half of THIS
-                           grid's own 12 columns, span 6, just a narrower
-                           12 than before) */
-  margin-top: 6rem; /* 96px gap from the headline/intro above — was 32px */
+.calendar-months {
+  grid-column: 1 / -1;
+  grid-row: 3;
+  margin-top: 6rem; /* 96px gap from the headline/intro above */
+  display: flex;
+  flex-direction: column;
+  gap: 3rem; /* 48px between month groups — and between the last month
+                 group and .calendar-robota-cta below, which is just this
+                 flex column's final child */
+}
+
+.calendar-month {
   display: grid;
-  grid-template-columns: repeat(12, 1fr);
+  grid-template-columns: repeat(12, 1fr); /* same column math as
+                                               .calendar-section-grid,
+                                               freshly scoped to this row's
+                                               own width — keeps the month
+                                               label/events lined up with
+                                               the headline/intro above */
   gap: 0.75rem; /* 12px */
 }
 
-/* Below 1450px .calendar-grid's own 2–11 inset (see above) starts eating
-   too much into the available width on top of .calendar-section's side
-   padding — drop it and let the grid use the full 12 columns instead.
-   Below 1000px there's no longer room for two events side by side at a
-   readable size, so each one spans the full width and they stack into a
-   single column instead. */
-@media (max-width: 1450px) {
-  .calendar-grid {
-    grid-column: 1 / -1;
-  }
+.calendar-month-label {
+  grid-column: 2 / 7; /* columns 2-6 — same logic as the section headline
+                          above (column 1 deliberately left empty) */
+  margin: 0;
+  font-family: "Katarine", Arial, Helvetica, sans-serif;
+  font-weight: 600; /* Semibold, matching every other heading on the site */
+  font-size: 3rem; /* 48px — not specified; a step below the 80px section
+                        headline, matching the reference image's own
+                        proportions */
+  line-height: 3.5rem; /* 56px */
+  letter-spacing: -0.03em; /* -3%, matching .section-headline/.cards-heading */
+  color: #EB2837;
+}
 
-  /* .calendar-grid loses its 2/12 inset (above) at this width, so the
-     headline/intro's own matching shift to column 2 (base rules above)
-     would otherwise leave them mismatched again — back to column 1 here
-     to stay flush with .calendar-grid's own left edge. */
-  .calendar-section-headline {
-    grid-column: 1 / 12;
-  }
-
-  .calendar-section-intro {
-    grid-column: 1 / 6;
-  }
+.calendar-month-events {
+  grid-column: 7 / 12; /* columns 7-11 — same logic as the month name,
+                            mirrored from the right (column 12 deliberately
+                            left empty) */
+  display: flex;
+  flex-direction: column;
+  gap: 1rem; /* 16px between event cards within a month */
 }
 
 .calendar-event {
@@ -1329,30 +1439,6 @@ body {
   align-items: stretch; /* default, stated explicitly since it's exactly
                             what makes .calendar-event-info "guided by"
                             .calendar-event-date's height */
-  grid-column: span 6; /* half the 12-column grid */
-}
-
-/* Placed after the base rule above (same specificity — source order is
-   what actually decides the winner here, and a media query block earlier
-   in the file loses to an unconditional rule later on regardless of
-   whether the query currently matches). */
-@media (max-width: 1000px) {
-  .calendar-event {
-    grid-column: 1 / -1;
-  }
-}
-
-@media (max-width: 768px) {
-  .calendar-section-intro {
-    grid-column: 1 / -1; /* was 1/6 (5 of 12 cols) — "100vw": full width of
-                             the row instead of a narrow column, same
-                             full-width pattern .calendar-grid already uses
-                             above at 1450px */
-  }
-
-  .calendar-grid {
-    margin-top: 4rem; /* 64px — was 6rem (96px) */
-  }
 }
 
 .calendar-event-date {
@@ -1367,8 +1453,8 @@ body {
   border-bottom-left-radius: 0.625rem; /* 10px */
 }
 
-.calendar-event-day,
-.calendar-event-month {
+.calendar-event-day {
+  margin-bottom: 0.25rem; /* 4px gap to the number below it */
   font-family: "Katarine", Arial, Helvetica, sans-serif;
   font-weight: 500; /* Medium */
   font-size: 1.25rem; /* 20px */
@@ -1376,33 +1462,16 @@ body {
   white-space: nowrap;
 }
 
-@media (max-width: 768px) {
-  .calendar-event-day,
-  .calendar-event-month {
-    font-size: 1.125rem; /* 18px — was 1.25rem (20px); joins the "smaller
-                             texts" tier with .calendar-event-location,
-                             which was already 1.125rem */
-  }
-
-  /* .calendar-event-number no longer needs its own override here — it's
-     2rem at every viewport now (base rule below), same "biggest texts"
-     tier as .calendar-event-headline. */
-}
-
-.calendar-event-day {
-  margin-bottom: 0.25rem; /* 6px gap to the number below it */
-}
-
 .calendar-event-number {
-  margin-bottom: 0.5rem; /* 12px gap to the month below it */
+  margin-bottom: 0.5rem; /* 8px gap to the info box's own top padding */
   font-family: "Katarine", Arial, Helvetica, sans-serif;
   font-weight: 600; /* not specified — Semibold, matching the "big
                         number" treatment used elsewhere on the site
                         (e.g. the hero-to-nav docked logo's neighbors) */
-  font-size: 2rem; /* 32px — was 2.5rem; sized to stand out as the card's
-                        focal number, distinct from the smaller day/month
-                        labels around it */
-  line-height: 1;
+  font-size: 2rem; /* 32px — stands out as the card's focal number,
+                        distinct from the smaller day label above it */
+  line-height: 1; /* unitless keeps this exactly 32px (matching the 32px
+                      lineheight spec) at any font-size scale */
   color: #FFFFFF;
   font-variant-numeric: lining-nums; /* tall/lining figures, not the
                                          font's default oldstyle numerals */
@@ -1411,7 +1480,7 @@ body {
 .calendar-event-info {
   flex: 1;
   min-width: 0; /* lets long headline/location text wrap instead of
-                    forcing the card wider than its grid-column:span 6 */
+                    forcing the card wider than its column */
   padding: 2rem; /* 32px */
   border-top: 1px solid rgba(17, 17, 17, 0.4); /* #111111 @ 40%, no fill,
                                                    no left border — the
@@ -1428,7 +1497,10 @@ body {
 
 .calendar-event-info-inner {
   display: flex;
-  height: 100%;
+  align-items: flex-start; /* top-aligns the text block AND the arrow, so
+                                the arrow sits at the top-right corner
+                                (matching the reference image) instead of
+                                stretching/pinning to the bottom */
   gap: 1rem; /* not specified — breathing room between the text and the
                 arrow so they don't collide on narrower cards */
 }
@@ -1459,21 +1531,171 @@ body {
   color: #111111; /* not specified */
 }
 
-/* Stretches to the info half's full height (the flex default on
-   .calendar-event-info-inner above) — that's the "filling the height
-   space" part. align/justify:flex-end here is what then pins the arrow
-   itself to this wrapper's bottom-right corner. */
 .calendar-event-arrow-wrapper {
-  display: flex;
-  align-items: flex-end;
-  justify-content: flex-end;
-  flex-shrink: 0;
+  flex-shrink: 0; /* the wrapper's own size now just follows its content
+                      (the small arrow below) — .calendar-event-info-inner
+                      above is what top-aligns it within the card */
 }
 
 .calendar-event-arrow {
   width: 10px;
   height: auto;
   color: rgba(17, 17, 17, 0.4); /* #111111 @ 40%, via currentColor */
+}
+
+/* Wrapper row for the CTA below — its only job is to give the button the
+   same 12-column/12px-gutter math .calendar-month uses, so the button
+   itself can be pinned to columns 7-11 by grid-column rather than sized
+   to its own content. */
+.calendar-robota-cta-row {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 0.75rem; /* 12px */
+}
+
+/* Dark CTA banner after the last month group, pointing to ROBOTA's own
+   program. Pinned to columns 7-11 (grid-column below) — the same span,
+   and so the same width, as the calendar items above it — rather than
+   sized to its own content like every other button on the site. Shares
+   the hover-enlarge (HOVER ENLARGE in animations.js) and context-cursor
+   (data-cursor, below) conventions every other link-like element on the
+   page uses, and reuses the same arrow glyph as .calendar-event-arrow
+   above (its own class, not the shared one, since it needs a different
+   color against the black fill). */
+.calendar-robota-cta {
+  grid-column: 7 / 12; /* columns 7-11 — same span as .calendar-month-
+                            events, so the button lines up under and
+                            matches the width of the events above it */
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2.5rem; /* 40px MINIMUM between the text and the arrow — a flex
+                   gap, not a margin, so it's enforced even on this now
+                   fixed-width button, whose actual content is far
+                   narrower than the box justify-content:space-between
+                   is spreading it across */
+  padding: 1.25rem 2rem; /* 20px top/bottom, 32px sides */
+  background-color: #111111;
+  border-radius: 0.625rem; /* 10px — not specified; reuses the calendar
+                                cards' own radius rather than inventing a
+                                new one */
+  text-decoration: none;
+}
+
+.calendar-robota-cta-text {
+  font-family: "Katarine", Arial, Helvetica, sans-serif;
+  font-weight: 500; /* not specified — Medium, matching .calendar-section-
+                        intro/.nav-button rather than inventing a new
+                        weight */
+  font-size: 1.25rem; /* 20px */
+  line-height: 2rem; /* 32px */
+  color: #FFFFFF;
+}
+
+.calendar-robota-cta-arrow {
+  width: 10px;
+  height: auto;
+  flex-shrink: 0;
+  color: #FFFFFF;
+}
+
+/* All mobile calendar overrides, consolidated in one block (placed after
+   every base rule above so they always win regardless of source order —
+   see the CARD STACK's own max-width:768px block for the same pattern). */
+@media (max-width: 768px) {
+  .calendar-section-headline,
+  .calendar-section-intro {
+    grid-column: 1 / -1; /* was 1/6 (5 of 12 cols) — full width of the row
+                             instead of a narrow column the (already
+                             smaller, see .section-headline) headline/
+                             intro text would otherwise wrap tightly in */
+  }
+
+  .calendar-months {
+    margin-top: 4rem; /* 64px — was 6rem (96px) */
+  }
+
+  .calendar-month {
+    grid-template-columns: 1fr; /* was repeat(12,1fr) — the month label
+                                     and its events stack instead of
+                                     sitting side by side; not enough
+                                     width at phone size for both */
+    gap: 1.5rem; /* 24px — not specified; stacked label-to-list gap */
+  }
+
+  .calendar-month-label {
+    grid-column: 1 / -1;
+    font-size: 2rem; /* 32px — was 3rem (48px), the same halving
+                          .section-headline itself gets at this width */
+    line-height: 2.25rem; /* 36px */
+  }
+
+  .calendar-month-events {
+    grid-column: 1 / -1;
+  }
+
+  /* The red date box becomes a full-width bar above the info box instead
+     of a narrow column beside it — day name and day number sit next to
+     each other along it instead of stacked, so it reads as one short row
+     instead of a tall narrow column. Corner rounding flips to match:
+     outer (top) corners round on the date bar, outer (bottom) corners
+     round on the info box, and the border shared between them moves from
+     "no left border on the info box" to "no top border" instead. */
+  .calendar-event {
+    flex-direction: column;
+  }
+
+  .calendar-event-date {
+    flex-direction: row;
+    align-items: baseline; /* lines up the day name's baseline with the
+                                (larger) day number's, instead of their
+                                top edges */
+    justify-content: space-between;
+    width: 100%; /* was shrink-to-content — spans the card's full width
+                     now that it's a top bar instead of a left column */
+    border-top-right-radius: 0.625rem; /* 10px — new on mobile: this is
+                                            now one of the box's two OUTER
+                                            (top) corners */
+    border-bottom-left-radius: 0; /* was 10px on desktop's side-by-side
+                                       layout */
+  }
+
+  .calendar-event-day {
+    margin-bottom: 0; /* was 4px (vertical stack gap) — side by side now,
+                          .calendar-event-date's own gap above handles the
+                          spacing instead */
+    font-size: 1.125rem; /* 18px */
+    line-height: 1.5rem; /* 24px */
+  }
+
+  .calendar-event-number {
+    margin-bottom: 0; /* was 8px (vertical stack gap) */
+  }
+
+  .calendar-event-info {
+    border-top: none; /* the shared edge is now this box's OWN top (the
+                           date bar sits above it), not its left — matches
+                           the desktop convention of no border on
+                           whichever side touches the other half */
+    border-left: 1px solid rgba(17, 17, 17, 0.4);
+    border-top-right-radius: 0; /* was 10px, paired with the date box
+                                     sitting to this box's left on desktop */
+    border-bottom-left-radius: 0.625rem; /* 10px — new on mobile: this is
+                                              now one of the box's two
+                                              OUTER (bottom) corners */
+  }
+
+  .calendar-event-headline {
+    font-size: 1.5rem; /* 24px — was 2rem (32px) */
+    line-height: 2rem; /* 32px — was 2.5rem (40px) */
+  }
+
+  .calendar-robota-cta {
+    grid-column: 1 / -1; /* was 7/12 — full width, matching every other
+                              mobile calendar override collapsing to a
+                              single column */
+    padding: 1rem; /* 16px on all sides — was 20px top/bottom, 32px sides */
+  }
 }
 
 /* -- CONTACTS SECTION -- //
@@ -1483,14 +1705,7 @@ body {
    CALENDAR EVENT REVEAL rather than pinned — see CONTACTS PHOTOS REVEAL
    in animations.js. */
 .contacts-section {
-  padding: 8rem var(--side-margin) 6rem;
-}
-
-@media (max-width: 768px) {
-  .contacts-section {
-    padding-top: 4rem; /* 64px — was 8rem (128px) */
-    padding-bottom: 4rem; /* 64px — was 6rem (96px) */
-  }
+  padding: var(--section-padding-y) var(--side-margin);
 }
 
 .contacts-section-grid {
@@ -1517,7 +1732,7 @@ body {
 
 .contacts-photos {
   margin-top: 6rem; /* 96px gap from the headline above, matching
-                        .calendar-grid's own gap from ITS headline */
+                        .calendar-months' own gap from ITS headline */
   display: grid;
   grid-template-columns: repeat(12, 1fr);
   column-gap: 0.75rem; /* 12px, sitewide convention */
@@ -1742,7 +1957,7 @@ body {
 }
 
 /* -- PROGRAMS SECTION -- //
-   Same 12-column grid technique as .calendar-grid — each item spans 4 of
+   Same 12-column grid technique as .calendar-month — each item spans 4 of
    the 12 columns, so exactly 3 sit per row. The button inside reuses
    .card-button/.label/.label--button as-is (see .cards-section) rather
    than duplicating that component — color is overridden to black below
@@ -1759,9 +1974,9 @@ body {
                            (align-self/width:100%) since they need to
                            reach the section's own left edge, not center
                            as a block */
-  padding: 10rem 3rem var(--side-margin); /* 48px top — was 20rem (320px);
-                                        side/bottom already matched the
-                                        standard --side-margin (48px) */
+  padding: var(--section-padding-y) 3rem; /* 80px top/bottom, sitewide
+                                             (see :root); side padding is
+                                             the standard 48px margin */
 }
 
 @media (max-width: 768px) {
@@ -1770,8 +1985,6 @@ body {
                              than var(--side-margin), so it needs its own
                              override */
     padding-right: 1rem;
-    padding-top: 4rem; /* 64px — was 10rem (160px); bottom already 16px
-                            via --side-margin, not touched */
   }
 }
 
@@ -1808,7 +2021,7 @@ body {
 .program-image {
   display: block;
   width: 100%;
-  aspect-ratio: 1.71 / 1; /* e.g. 600px wide → 350px tall */
+  aspect-ratio: 16 / 9; /* e.g. 600px wide → 337.5px tall */
   object-fit: cover;
   border-radius: 0.375rem; /* 6px — smaller than .program-item's own 10px,
                                deliberately: the image is a distinct inset
@@ -1830,7 +2043,12 @@ body {
 }
 
 .program-headline {
-  margin: 0;
+  margin: 0 0 1.5rem; /* 24px MINIMUM floor to the button below — fixed
+                          (not auto), so it always applies even when
+                          .program-text has no extra height to give the
+                          button's own auto margin further down. (Used to
+                          be .program-description's own bottom margin,
+                          back when there was a paragraph between the two.) */
   font-family: "Katarine", Arial, Helvetica, sans-serif;
   font-weight: 600; /* Semibold */
   font-size: 2rem; /* 32px */
@@ -1838,33 +2056,19 @@ body {
   color: #111111;
 }
 
-.program-description {
-  margin: 0.75rem 0 2rem; /* 12px gap from the headline above; 32px
-                              MINIMUM floor to the button below (was 24px)
-                              — fixed (not auto), so it always applies
-                              even when .program-text has no extra height
-                              to give the button's own auto margin below */
-  font-family: "Katarine", Arial, Helvetica, sans-serif;
-  font-weight: 500; /* Medium */
-  font-size: 1rem; /* 16px */
-  line-height: 1.5rem; /* 24px */
-  color: #111111;
-  opacity: 0.7;
-}
-
 .program-item .card-button {
   align-self: flex-start; /* stay left-aligned, not stretched full-width
                               by .program-text's flex column — cards-
                               section's own .card-footer is a row, not a
                               column, so it never needed this itself */
-  margin-top: auto; /* on top of .program-description's own fixed 32px
+  margin-top: auto; /* on top of .program-headline's own fixed 24px
                         margin-bottom above (flex items' margins don't
                         collapse, so both apply/stack) — this auto margin
                         adds whatever EXTRA space .program-text has beyond
-                        that 32px floor, growing the gap to keep the
+                        that 24px floor, growing the gap to keep the
                         button bottom-aligned when a taller sibling in the
                         same grid row stretches .program-item, without
-                        ever shrinking the gap below 32px */
+                        ever shrinking the gap below 24px */
 }
 
 .program-item .label--button {
@@ -1919,7 +2123,19 @@ body {
    .testimonial-item below for its own card chrome (background, border)
    flipping the same way. */
 .testimonials-section {
-  padding: 8rem var(--side-margin) 6rem;
+  padding: var(--section-padding-y) var(--side-margin) 0; /* bottom was
+                                                               var(--section-
+                                                               padding-y)
+                                                               too — 0 now,
+                                                               so the cards
+                                                               sit right
+                                                               against
+                                                               .gallery-
+                                                               section
+                                                               below (both
+                                                               black, so
+                                                               still
+                                                               seamless) */
   border-radius: 0px;
   background-color: #111111;
   margin-bottom: -2px; /* overlaps .gallery-stack's own black background
@@ -1932,14 +2148,6 @@ body {
                            are the same black, a couple of px of overlap
                            is invisible either way, but it makes that gap
                            impossible instead of just unlikely. */
-}
-
-@media (max-width: 768px) {
-  .testimonials-section {
-    padding-top: 3rem; /* 48px — was 8rem (128px); the biggest cut of this
-                            pass, per "especially testimonials" */
-    padding-bottom: 4rem; /* 64px — was 6rem (96px) */
-  }
 }
 
 .testimonials-section-grid {
@@ -1972,6 +2180,13 @@ body {
                           — see the note on offsetLeft in TESTIMONIALS DRAG
                           SCROLL in animations.js */
   display: flex;
+  align-items: flex-start; /* was flex's default (stretch) — that silently
+                                forced every card to the row's own height
+                                (the tallest card), even after removing the
+                                JS that set them all equal on purpose (see
+                                TESTIMONIALS CARD HEIGHT in animations.js).
+                                flex-start lets each .testimonial-item be
+                                its own natural, content-driven height. */
   gap: .75rem; /* 24px — not specified, a reasonable card-to-card gap */
   width: max-content;
   padding-left: var(--side-margin); /* keeps the first card at the normal
@@ -2099,6 +2314,23 @@ body {
    the pin consumes, .gallery-stack (100vh) is the element that actually
    gets pinned. (.contacts-section below USED to use this same split too,
    but its own pinned accordion is gone now — see CONTACTS SECTION.) */
+.gallery-section {
+  padding-top: 0; /* was var(--section-padding-y) (80px) — .testimonials-
+                      section right above now also ends in 0 padding, so
+                      the two black backgrounds sit flush with no gap to
+                      seamlessly bridge any more */
+  padding-bottom: var(--section-padding-y); /* 80px, unchanged — still
+                                                 needs its own black
+                                                 background here too:
+                                                 otherwise this padding
+                                                 would show up as a light
+                                                 band below the pinned
+                                                 stage. The pin itself
+                                                 (see .gallery-scroll below)
+                                                 is unaffected. */
+  background-color: #111111;
+}
+
 .gallery-scroll {
   position: relative;
   height: 700vh; /* scroll distance for the full cycle — trimmed down
@@ -2147,17 +2379,23 @@ body {
 
 .gallery-image {
   display: block;
-  height: 30vh; /* width is auto — each photo keeps its own natural
-                    aspect ratio instead of being cropped to a uniform
-                    box, so they read as unique rather than identical
-                    tiles. */
+  height: 45vh; /* was 30vh — GALLERY WHEEL REVEAL's own peak scale
+                    (animations.js, `scale: arc`) already tops out at 1
+                    (100% of this natural size) right at the midpoint, so
+                    making a photo actually render bigger at that peak
+                    means growing the natural size itself rather than the
+                    scale factor. width is auto — each photo keeps its own
+                    natural aspect ratio instead of being cropped to a
+                    uniform box, so they read as unique rather than
+                    identical tiles. */
   width: auto;
 }
 
 @media (max-width: 768px) {
   .gallery-image {
-    width: 60vw; /* smaller than desktop's 30vh-tall box tends to render
-                     at — portrait phone screens have much less spare
+    width: 85vw; /* was 60vw — grown to match the desktop bump above;
+                     smaller than desktop's tall box tends to render at
+                     since portrait phone screens have much less spare
                      width to give up to a photo passing through */
     height: auto;
   }
@@ -2173,8 +2411,9 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 20.5rem 3rem; /* 200px vertical — a bit more breathing room
-                             between this and .cards-section above it */
+  padding: 0rem 3rem 10rem 3rem; /* 160px top/bottom — the ONE section that
+                           deliberately doesn't use --section-padding-y
+                           (80px). Side padding is the standard 48px. */
 }
 
 @media (max-width: 768px) {
@@ -2271,18 +2510,10 @@ body {
    typed text); .contact-form-textarea only adds the height/resize
    difference specific to the message box. */
 .contact-form-section {
-  min-height: 100vh;
-  padding: 6rem var(--side-margin); /* vertical padding not specified —
-                                        matches the other sections' rhythm;
-                                        side padding is the standard
-                                        48px page margin */
-}
-
-@media (max-width: 768px) {
-  .contact-form-section {
-    padding-top: 4rem; /* 64px — was 6rem (96px) */
-    padding-bottom: 4rem; /* 64px */
-  }
+  /* No min-height:100vh anymore (it used to make this a full screen tall
+     regardless of its content) — that would pad out the space after the
+     form well past the 80px every other section gets. */
+  padding: var(--section-padding-y) var(--side-margin);
 }
 
 .contact-form-grid {
@@ -2502,7 +2733,7 @@ body {
   grid-column: 5 / -1;
 }
 
-/* A fresh nested 12-column grid (same convention as .calendar-grid inside
+/* A fresh nested 12-column grid (same convention as .calendar-month inside
    .calendar-section-grid) scoped to .footer-content's own width, so
    .footer-mission-text's "5 columns" below has a concrete meaning. The
    headline explicitly spans all 12 (a grid item with no span set would
